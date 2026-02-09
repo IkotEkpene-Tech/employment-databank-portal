@@ -63,12 +63,12 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                 empowerment programs, and inclusive economic development.
               </p>
 
-              <button
+              {/* <button
                 onClick={onClose}
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-md bg-[#00572f] px-6 py-3 text-white text-sm font-medium hover:bg-[#004425] transition mt-auto"
               >
                 Proceed to Registration
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
