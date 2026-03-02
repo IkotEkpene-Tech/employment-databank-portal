@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
@@ -10,19 +12,28 @@ import {
 } from "lucide-react";
 import { Button } from "./Button";
 import {
-  wards,
   vocationalSkills,
   educationalQualifications,
 } from "@/data/locationData";
+import { useGetAllDatabaseWards, useSubmitApplications } from "@/services/tanstack";
+import { useAlert } from "next-alert";
 
-interface RegistrationFormProps {
-  onSuccess: () => void;
-}
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_FILE_TYPES = {
+  "application/pdf": ".pdf",
+  "image/jpeg": ".jpg",
+  "image/jpg": ".jpg",
+  "image/png": ".png",
+};
 
 const validationSchema = Yup.object({
   fullName: Yup.string().required("Full name is required"),
   phoneNumber: Yup.string()
-    .matches(/^[0-9]{10,11}$/, "Enter a valid phone number (10-11 digits)")
+    .matches(
+      /^0[0-9]{10}$/,
+      "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
+    )
     .required("Phone number is required"),
   email: Yup.string().email("Enter a valid email address"),
   ward: Yup.string().required("Please select your ward"),
@@ -33,7 +44,29 @@ const validationSchema = Yup.object({
     then: (schema) =>
       schema.required("Please select your highest qualification"),
   }),
-  certificate: Yup.mixed().nullable(),
+  certificate: Yup.mixed()
+    .nullable()
+    .when("hasEducation", {
+      is: "yes",
+      then: (schema) =>
+        schema
+          .test(
+            "fileSize",
+            `File size must not be more than ${MAX_FILE_SIZE_MB}MB`,
+            (value) => {
+              if (!value) return true; // optional field
+              return isFileSizeValid(value);
+            },
+          )
+          .test(
+            "fileType",
+            "Only PDF, JPG, JPEG and PNG files are allowed",
+            (value) => {
+              if (!value) return true;
+              return isFileTypeValid(value);
+            },
+          ),
+    }),
   vocationalSkill: Yup.string().required("Please select a vocational skill"),
   otherSkill: Yup.string().when("vocationalSkill", {
     is: "Other",
@@ -41,7 +74,10 @@ const validationSchema = Yup.object({
   }),
   villageHeadName: Yup.string().required("Village head name is required"),
   villageHeadPhone: Yup.string()
-    .matches(/^[0-9]{10,11}$/, "Enter a valid phone number (10-11 digits)")
+    .matches(
+      /^0[0-9]{10}$/,
+      "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
+    )
     .required("Village head phone number is required"),
 });
 
@@ -60,13 +96,46 @@ const initialValues = {
   villageHeadPhone: "",
 };
 
-export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
-  const handleSubmit = async (values: typeof initialValues) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Form submitted:", values);
-    onSuccess();
-  };
+const isFileSizeValid = (file: any) => {
+  return file.size <= MAX_FILE_SIZE_BYTES;
+};
+
+const isFileTypeValid = (file: any) => {
+  return Object.keys(ALLOWED_FILE_TYPES).includes(file.type);
+};
+
+export const RegistrationForm = ({ onSuccess }: {onSuccess: ()=> void }) => {
+  const { data: allWards } = useGetAllDatabaseWards();
+
+  const { mutate:submitApplication, isPending } = useSubmitApplications()
+
+  const { addAlert } = useAlert();
+
+  const wards = allWards?.data || [];
+
+const handleSubmit = (values: typeof initialValues) => {
+  const formData = new FormData();
+
+  Object.entries(values).forEach(([key, value]) => {
+    if (key === 'certificate') {
+      if (value instanceof File) {
+        formData.append('certificate', value);
+      }
+    } else if (value !== null && value !== '') {
+      formData.append(key, String(value));
+    }
+  });
+
+  submitApplication(formData, {
+    onSuccess: (data:any) => {
+      addAlert("Success", data?.message, "success");
+      onSuccess();
+    },
+    onError: (error: any) => {
+      addAlert("Error", `Error submitting application: ${error?.message ?? "Unknown error"}`, "error");
+    }
+  });
+};
 
   return (
     <Formik
@@ -75,7 +144,9 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
       onSubmit={handleSubmit}
     >
       {({ values, setFieldValue, isSubmitting, errors, touched }) => {
-        const selectedWard = wards.find((w) => w.id === values.ward);
+        const selectedWard = allWards?.data.find(
+          (w: any) => w.id === values.ward,
+        );
         const villageOptions = selectedWard ? selectedWard.villages : [];
 
         return (
@@ -149,7 +220,7 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[#ec7913]" />
                 <h3 className="text-lg text-[#00572f] font-semibold">
-                  Location Details
+                  Origin Details
                 </h3>
               </div>
 
@@ -164,11 +235,11 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
                     className="w-full text-[#112219] border-[#d3ded9] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#00572f]"
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                       setFieldValue("ward", e.target.value);
-                      setFieldValue("village", "");
+                      console.log('target:', e.target.value)
                     }}
                   >
                     <option value="">Select your ward</option>
-                    {wards.map((w) => (
+                    {wards.map((w: any) => (
                       <option key={w.id} value={w.id}>
                         {w.name}
                       </option>
@@ -192,9 +263,9 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
                     className="w-full text-[#112219] border-[#d3ded9] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#00572f] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select your village</option>
-                    {villageOptions.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
+                    {villageOptions.map((v: any) => (
+                      <option key={v?.id} value={v?.name}>
+                        {v?.name}
                       </option>
                     ))}
                   </Field>
@@ -266,7 +337,7 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
                       className="w-full text-[#112219] border-[#d3ded9] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#00572f]"
                     >
                       <option value="">
-                        Select your highest qualification
+                        Select your highest qualification (File should not be more than 2mb)
                       </option>
                       {educationalQualifications.map((q) => (
                         <option key={q.id} value={q.id}>
@@ -296,8 +367,13 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
                       className="w-full text-[#112219] border-[#d3ded9] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#00572f]"
                     />
                     <p className="text-xs text-[#5c7166] mt-1">
-                      Upload your highest qualification certificate
+                      Upload your highest qualification certificate (File should not be more than 2mb)
                     </p>
+                    <ErrorMessage
+                      name="certificate"
+                      component="p"
+                      className="text-sm text-[#ef4343] mt-1"
+                    />
                   </div>
                 </div>
               )}
@@ -414,10 +490,10 @@ export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
               <Button
                 type="submit"
                 size="lg"
-                disabled={isSubmitting}
+                disabled={isPending}
                 className="bg-[#ec7913] hover:bg-[#ec7913]/90 text-[#ffffff] hover:cursor-pointer px-8 py-3 text-base font-semibold"
               >
-                {isSubmitting ? (
+                {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Submitting...

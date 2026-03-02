@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { useState, useEffect } from "react";
 import { RegistrationHeader } from "@/components/RegistrationHeader";
@@ -6,10 +7,13 @@ import { RegistrationForm } from "@/components/RegistrationForm";
 import { SuccessScreen } from "@/components/SuccessScreen";
 import { Footer } from "@/components/Footer";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { PageLoader } from "@/components/PageLoader";
+import { useGetAllDatabaseWards } from "@/services/tanstack";
 
 const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const { isPending: isDataFetching } = useGetAllDatabaseWards();
 
   useEffect(() => {
     setShowModal(true);
@@ -24,14 +28,22 @@ const Index = () => {
     setIsSubmitted(false);
   };
 
+  if (isDataFetching) {
+    return (
+      <div className="flex bg-[#fafafa] justify-center items-center min-h-screen">
+        <PageLoader
+          title="Loading Data"
+          subtitle="Fetching data for registration."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#fafafa]">
       <RegistrationHeader />
 
-      <WelcomeModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-      />
+      <WelcomeModal open={showModal} onClose={() => setShowModal(false)} />
 
       <main className="flex-1 container max-w-4xl mx-auto px-4 py-8">
         {!isSubmitted ? (
