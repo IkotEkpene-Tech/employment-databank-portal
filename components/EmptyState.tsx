@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchX, Database, MapPin } from "lucide-react";
+import { Database } from "lucide-react";
 import { ReactNode } from "react";
 
 interface EmptyStateProps {
