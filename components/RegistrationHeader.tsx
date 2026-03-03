@@ -25,7 +25,7 @@ export const RegistrationHeader = () => {
                 Ikot Ekpene Local Government Area
               </h1>
               <p className="mt-1 text-sm md:text-base text-[#e6ebe8]">
-                Indigene Employment Databank Registration Portal
+                Ikot Ekpene Employment Support Platform
               </p>
             </div>
           </div>

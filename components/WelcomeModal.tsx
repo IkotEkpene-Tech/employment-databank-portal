@@ -46,16 +46,14 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
             {/* Text */}
             <div className="p-6 md:p-8 md:w-2/3 flex flex-col">
               <h2 className="text-xl md:text-2xl font-semibold text-[#00572f] mb-4">
-                Welcome to the Indigene Employment Databank
+                Welcome to the Ikot Ekpene Employment Support Platform
               </h2>
 
               <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-3">
                 Under the Chairmanship of{" "}
-                <strong>Hon. Elder Aniefiok Nkom</strong>, this portal is
-                designed to collect structured and reliable data of eligible
-                indigenes of Ikot Ekpene Local Government Area who are
-                unemployed, underemployed, or actively seeking better job
-                opportunities.
+                <strong>Hon. Elder Aniefiok Nkom</strong>, this platform is for
+                Ikot Ekpene indigenes who are unemployed or seeking better job
+                opportunities to register their details for support programs.
               </p>
 
               <p className="text-gray-700 text-sm md:text-base mb-6">
