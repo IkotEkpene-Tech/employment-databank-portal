@@ -7,7 +7,7 @@ export const Footer = () => {
             © {new Date().getFullYear()} Ikot Ekpene Local Government Area
           </p>
           <p className="text-xs opacity-60 mt-1">
-            Official Employment Databank Portal • Chairmanship of Hon. Elder Aniefiok Nkom
+            Official Job & Support Registration Portal • Chairmanship of Hon. Elder Aniefiok Nkom
           </p>
         </div>
       </div>

@@ -196,7 +196,7 @@ export const SuccessScreen = ({ onReset }: SuccessScreenProps) => {
               </div>
             </div>
             <h2 className="ss-banner-title">Registration Successful!</h2>
-            <p className="ss-banner-sub">Ikot Ekpene LGA Employment Databank</p>
+            <p className="ss-banner-sub">Ikot Ekpene LGA Job & Support Registration Portal</p>
           </div>
 
           {/* Body */}
