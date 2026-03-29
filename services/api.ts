@@ -18,8 +18,9 @@ export const submitApplications = async (uploadData: any) => {
       },
     );
     return response.data;
-  } catch (error: any) {    
-    const message = error?.response?.data?.message || error?.message || "Unknown error";
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(message);
   }
 };

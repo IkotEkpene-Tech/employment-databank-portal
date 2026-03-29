@@ -14,7 +14,7 @@ export const useGetAllDatabaseWards = () => {
 export function useSubmitApplications() {
   const queryClient = useQueryClient();
   return useMutation({
-        mutationFn: (updateData: FormData) => submitApplications(updateData),
+    mutationFn: (updateData: FormData) => submitApplications(updateData),
     onSuccess: async () => {
       queryClient.invalidateQueries({
         queryKey: ["allWards"],
