@@ -10,7 +10,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AlertProvider>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      <Alerts position="top-left" direction="left" timer={6000} />
+      <Alerts
+        position="top-left"
+        direction="left"
+        timer={6000}
+        className="bg-black text-white opacity-100 backdrop-blur-none"
+      />
     </AlertProvider>
   );
 }
