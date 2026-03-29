@@ -184,14 +184,15 @@ export const SuccessScreen = ({ onReset }: SuccessScreenProps) => {
 
       <div className="ss-wrapper">
         <div className="ss-card">
-
           {/* Green banner */}
           <div className="ss-banner">
             <div className="ss-icon-wrap">
               <div className="ss-ripple" />
               <div className="ss-ripple ss-ripple-2" />
               <div className="ss-icon-ring">
-                <CheckCircle2 style={{ width: "36px", height: "36px", color: "#fff" }} />
+                <CheckCircle2
+                  style={{ width: "36px", height: "36px", color: "#fff" }}
+                />
               </div>
             </div>
             <h2 className="ss-banner-title">Registration Successful!</h2>
@@ -201,8 +202,9 @@ export const SuccessScreen = ({ onReset }: SuccessScreenProps) => {
           {/* Body */}
           <div className="ss-body">
             <p className="ss-message">
-              Well done! Your details have been saved. We will reach out to you when there is a job,
-              training, or support programme that matches your profile. Please keep your phone nearby.
+              Well done! Your details have been saved. We will reach out to you
+              when there is a job, training, or support programme that matches
+              your profile. Please keep your phone nearby.
             </p>
 
             {/* What happens next */}
@@ -217,7 +219,8 @@ export const SuccessScreen = ({ onReset }: SuccessScreenProps) => {
                 </li>
                 <li className="ss-next-step">
                   <span className="ss-step-dot">2</span>
-                  Your village head may be contacted to confirm you are from Ikot Ekpene.
+                  Your village head may be contacted to confirm you are from
+                  Ikot Ekpene LGA.
                 </li>
                 <li className="ss-next-step">
                   <span className="ss-step-dot">3</span>
@@ -231,7 +234,6 @@ export const SuccessScreen = ({ onReset }: SuccessScreenProps) => {
               Register Another Person
             </Button>
           </div>
-
         </div>
       </div>
     </>
