@@ -37,7 +37,7 @@ export const SubmitLoader = () => {
         <h3
           style={{
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: "16px",
+            fontSize: "18px",
             fontWeight: 600,
             color: "#ffffff",
             margin: "0 0 4px",
@@ -48,7 +48,7 @@ export const SubmitLoader = () => {
         <p
           style={{
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: "13px",
+            fontSize: "16px",
             color: "rgba(255,255,255,0.75)",
             margin: 0,
           }}
