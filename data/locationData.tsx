@@ -125,6 +125,7 @@ export const vocationalSkills = [
   "Shoemaking / Leather Works",
   "Soap / Cream Making",
   "Event Planning",
+  "None",
   "Other",
 ];
 
