@@ -19,6 +19,7 @@ import { Button } from "./Button";
 import {
   vocationalSkills,
   educationalQualifications,
+  disciplines,
 } from "@/data/locationData";
 import {
   useGetAllDatabaseWards,
@@ -78,7 +79,7 @@ const validationSchema = Yup.object({
       "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
     )
     .required("Phone number is required"),
-  email: Yup.string().email("Enter a valid email address"),
+  email: Yup.string().required("Email is required").email("Enter a valid email address"),
   vin: Yup.string()
     .min(19, "VIN must be at least 19 characters")
     .required("Voter Identification Number (VIN) is required"),
@@ -89,6 +90,14 @@ const validationSchema = Yup.object({
     is: "yes",
     then: (schema) =>
       schema.required("Please select your highest qualification"),
+  }),
+  discipline: Yup.string().when("hasEducation", {
+    is: "yes",
+    then: (schema) => schema.required("Please select your discipline"),
+  }),
+  otherDiscipline: Yup.string().when("discipline", {
+    is: "Other",
+    then: (schema) => schema.required("Please specify your discipline"),
   }),
   certificate: Yup.mixed()
     .nullable()
@@ -199,6 +208,8 @@ export const RegistrationForm = ({
     village: "",
     hasEducation: "",
     highestQualification: "",
+    discipline: "",
+    otherDiscipline: "",
     certificate: null as File | null,
     vocationalSkill: "",
     otherSkill: "",
@@ -241,7 +252,11 @@ export const RegistrationForm = ({
       if (key === "certificate" || key === "certificateOfOrigin") {
         if (value instanceof File) formData.append(key, value);
       } else if (value !== null && value !== "") {
-        formData.append(key, String(value));
+        if(value === 'email'){
+          formData.append(key, String(value).toLowerCase());
+        } else {
+          formData.append(key, String(value));
+        }
       }
     });
 
@@ -710,6 +725,49 @@ export const RegistrationForm = ({
                           className="rf-error"
                         />
                       </div>
+                      <div>
+                        <label className="rf-field-label">
+                          Discipline / Course of Study{" "}
+                          <span style={{ color: "#ef4343" }}>*</span>
+                        </label>
+                        <Field
+                          as="select"
+                          name="discipline"
+                          className="rf-input"
+                        >
+                          <option value="">Select your discipline</option>
+                          {disciplines.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="discipline"
+                          component="p"
+                          className="rf-error"
+                        />
+                      </div>
+
+                      {values.discipline === "Other" && (
+                        <div>
+                          <label className="rf-field-label">
+                            Specify Your Discipline{" "}
+                            <span style={{ color: "#ef4343" }}>*</span>
+                          </label>
+                          <Field
+                            name="otherDiscipline"
+                            type="text"
+                            placeholder="Enter your course of study"
+                            className="rf-input"
+                          />
+                          <ErrorMessage
+                            name="otherDiscipline"
+                            component="p"
+                            className="rf-error"
+                          />
+                        </div>
+                      )}
                       <div>
                         <label className="rf-field-label">
                           Upload Certificate{" "}

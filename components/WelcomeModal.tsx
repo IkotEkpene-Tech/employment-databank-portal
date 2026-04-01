@@ -20,7 +20,10 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+      style={{
+        backgroundColor: "rgba(0,0,0,0.65)",
+        backdropFilter: "blur(4px)",
+      }}
     >
       <div
         className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
@@ -147,7 +150,6 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
         {/* Scrollable body */}
         <div className="overflow-y-auto" style={{ flexShrink: 1 }}>
           <div className="modal-body">
-
             {/* Photo — top on mobile, left column on desktop */}
             <div className="modal-photo">
               <Image
@@ -180,7 +182,13 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                 >
                   Hon. Elder Aniefiok Nkom
                   <br />
-                  <span style={{ opacity: 0.7, fontWeight: 400 }}>Chairman, Ikot Ekpene LGA</span>
+                  <span style={{ opacity: 0.7, fontWeight: 400 }}>
+                    Executive Chairman
+                  </span>
+                  <br />
+                  <span style={{ opacity: 0.7, fontWeight: 400 }}>
+                    Ikot Ekpene LGA
+                  </span>
                 </p>
               </div>
             </div>
@@ -206,7 +214,7 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                   fontWeight: 500,
                 }}
               >
-                👋 Welcome! 
+                👋 Welcome!
                 {/* This is the right place if you need a job or want to grow your work. */}
               </p>
 
@@ -223,8 +231,14 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                 }}
               >
                 {[
-                  { icon: "✅", text: "Fill in your name and details — it is free and easy." },
-                  { icon: "🤝", text: "Our office will use your information to connect you to jobs and training." },
+                  {
+                    icon: "✅",
+                    text: "Fill in your name and details — it is free and easy.",
+                  },
+                  {
+                    icon: "🤝",
+                    text: "Our office will use your information to connect you to jobs and training.",
+                  },
                   { icon: "🔒", text: "Your information is safe with us." },
                 ].map(({ icon, text }) => (
                   <li
@@ -238,7 +252,15 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                       lineHeight: 1.6,
                     }}
                   >
-                    <span style={{ fontSize: "15px", marginTop: "1px", flexShrink: 0 }}>{icon}</span>
+                    <span
+                      style={{
+                        fontSize: "15px",
+                        marginTop: "1px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {icon}
+                    </span>
                     <span>{text}</span>
                   </li>
                 ))}
@@ -255,7 +277,9 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                   lineHeight: 1.55,
                 }}
               >
-                <strong>For Ikot Ekpene people only.</strong> This programme is under the leadership of Hon. Elder Aniefiok Nkom to help our people find work and support.
+                <strong>For Ikot Ekpene people only.</strong> This programme is
+                under the leadership of Hon. Elder Aniefiok Nkom to help our
+                people find work and support.
               </div>
 
               <div style={{ marginTop: "4px" }}>
@@ -264,7 +288,6 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>
