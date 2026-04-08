@@ -20,25 +20,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       "inline-flex items-center hover:cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 
     const variantStyles = {
-  default:
-    "bg-[#00563b] text-[#ffffff] hover:bg-[#00563b]/90",
+      default: "bg-[#00563b] text-[#ffffff] hover:bg-[#00563b]/90",
 
-  destructive:
-    "bg-[#ef4444] text-[#ffffff] hover:bg-[#ef4444]/90",
+      destructive: "bg-[#ef4444] text-[#ffffff] hover:bg-[#ef4444]/90",
 
-  outline:
-    "border border-[#d4d9d6] bg-[#fafafa] text-[#0f2618] hover:bg-[#e77818] hover:text-[#ffffff]",
+      outline:
+        "border border-[#d4d9d6] bg-[#fafafa] text-[#0f2618] hover:bg-[#e77818] hover:text-[#ffffff]",
 
-  secondary:
-    "bg-[#eff1f0] text-[#0f2618] hover:bg-[#eff1f0]/80",
+      secondary: "bg-[#eff1f0] text-[#0f2618] hover:bg-[#eff1f0]/80",
 
-  ghost:
-    "text-[#0f2618] hover:bg-[#e77818] hover:text-[#ffffff]",
+      ghost: "text-[#0f2618] hover:bg-[#e77818] hover:text-[#ffffff]",
 
-  link:
-    "text-[#00563b] underline-offset-4 hover:underline",
-};
-
+      link: "text-[#00563b] underline-offset-4 hover:underline",
+    };
 
     const sizeStyles = {
       default: "h-10 px-4 py-2",

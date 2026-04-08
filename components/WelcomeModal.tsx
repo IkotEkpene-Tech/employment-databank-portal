@@ -1,6 +1,8 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import Image from "next/image";
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -19,139 +21,37 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{
-        backgroundColor: "rgba(0,0,0,0.65)",
-        backdropFilter: "blur(4px)",
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        style={{
-          animation: "modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
-          maxHeight: "92vh",
-        }}
+        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+        onClick={(e) => e.stopPropagation()}
       >
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500&display=swap');
-
-          @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.92) translateY(16px); }
-            to   { opacity: 1; transform: scale(1)    translateY(0); }
-          }
-
-          .modal-btn {
-            background: #00572f;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 13px 32px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-            letter-spacing: 0.01em;
-          }
-          .modal-btn:hover {
-            background: #004525;
-            transform: translateY(-1px);
-          }
-          .close-btn {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 20;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.9);
-            color: #555;
-            font-size: 20px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.12);
-            transition: background 0.15s, color 0.15s;
-          }
-          .close-btn:hover { background: #fff; color: #111; }
-
-          /* Stacked on mobile, side-by-side on desktop */
-          .modal-body {
-            display: flex;
-            flex-direction: column;
-          }
-          @media (min-width: 640px) {
-            .modal-body {
-              flex-direction: row;
-            }
-          }
-
-          /* Full-width tall image on mobile, fixed sidebar on desktop */
-          .modal-photo {
-            position: relative;
-            width: 100%;
-            height: 280px;
-            flex-shrink: 0;
-            background: #e8f0ec;
-          }
-          @media (min-width: 640px) {
-            .modal-photo {
-              width: 180px;
-              height: auto;
-              min-height: 320px;
-            }
-          }
-        `}</style>
-
         {/* Close button */}
-        <button onClick={onClose} className="close-btn" aria-label="Close">
-          ×
+        <button
+          onClick={onClose}
+          className="absolute top-3.5 right-3.5 z-20 cursor-pointer w-8 h-8 rounded-full bg-white/90 text-gray-600 flex items-center justify-center shadow-md hover:bg-white hover:text-gray-900 transition-all duration-150"
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
         </button>
 
         {/* Top green banner */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #00572f 0%, #007a44 100%)",
-            padding: "22px 28px 18px",
-            flexShrink: 0,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "11px",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.7)",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              margin: "0 0 6px",
-            }}
-          >
+        <div className="bg-linear-to-br from-[#00572f] to-[#007a44] px-7 py-5 shrink-0">
+          <p className="font-['DM_Sans'] text-[11px] font-medium text-white/70 tracking-wider uppercase mb-1.5">
             Ikot Ekpene Local Government Area
           </p>
-          <h2
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(17px, 3.5vw, 22px)",
-              fontWeight: 700,
-              color: "#fff",
-              margin: 0,
-              lineHeight: 1.3,
-            }}
-          >
+          <h2 className="font-['Playfair_Display'] text-lg sm:text-xl md:text-[22px] font-bold text-white leading-tight">
             Job &amp; Support Registration Portal
           </h2>
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto" style={{ flexShrink: 1 }}>
-          <div className="modal-body">
+        <div className="overflow-y-auto flex-1">
+          <div className="flex flex-col sm:flex-row">
             {/* Photo — top on mobile, left column on desktop */}
-            <div className="modal-photo">
+            <div className="relative w-full h-72 sm:w-45 sm:h-auto sm:min-h-80 shrink-0 bg-[#e8f0ec]">
               <Image
                 src="/hon-nkom.jpeg"
                 alt="Hon. Elder Aniefiok Nkom – Chairman, Ikot Ekpene LGA"
@@ -160,33 +60,15 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
                 priority
               />
               {/* Caption strip */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  background: "rgba(0,55,30,0.82)",
-                  padding: "8px 10px",
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: "10px",
-                    color: "rgba(255,255,255,0.9)",
-                    margin: 0,
-                    lineHeight: 1.4,
-                    fontWeight: 500,
-                  }}
-                >
+              <div className="absolute bottom-0 left-0 right-0 bg-[#00371e]/80 px-2.5 py-2">
+                <p className="font-['DM_Sans'] text-[10px] text-white/90 leading-tight font-medium">
                   Hon. Elder Aniefiok Nkom
                   <br />
-                  <span style={{ opacity: 0.7, fontWeight: 400 }}>
+                  <span className="opacity-70 font-normal">
                     Executive Chairman
                   </span>
                   <br />
-                  <span style={{ opacity: 0.7, fontWeight: 400 }}>
+                  <span className="opacity-70 font-normal">
                     Ikot Ekpene LGA
                   </span>
                 </p>
@@ -194,97 +76,56 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
             </div>
 
             {/* Text column */}
-            <div
-              style={{
-                flex: 1,
-                minWidth: "200px",
-                padding: "24px 26px",
-                fontFamily: "'DM Sans', sans-serif",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "15px",
-                  color: "#1a1a1a",
-                  lineHeight: 1.65,
-                  margin: 0,
-                  fontWeight: 500,
-                }}
-              >
-                👋 Welcome!
-                {/* This is the right place if you need a job or want to grow your work. */}
+            <div className="flex-1 min-w-50 p-6 sm:p-7 font-['DM_Sans'] flex flex-col gap-3.5">
+              <p className="text-[15px] text-gray-800 leading-relaxed font-medium">
+                👋 Welcome! The Ikot Ekpene LGA Job & Support Registration
+                Portal is now open.
               </p>
 
-              <div style={{ borderTop: "1.5px solid #e4ede8" }} />
+              <div className="border-t border-[#e4ede8]" />
 
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: "0",
-                  listStyle: "none",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                {[
-                  {
-                    icon: "✅",
-                    text: "Fill in your name and details — it is free and easy.",
-                  },
-                  {
-                    icon: "🤝",
-                    text: "Our office will use your information to connect you to jobs and training.",
-                  },
-                  { icon: "🔒", text: "Your information is safe with us." },
-                ].map(({ icon, text }) => (
-                  <li
-                    key={text}
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      alignItems: "flex-start",
-                      fontSize: "14px",
-                      color: "#333",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "15px",
-                        marginTop: "1px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {icon}
+              <div className="space-y-2.5">
+                <p className="text-sm font-semibold text-[#00572f]">
+                  To complete your registration, you'll need to:
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex gap-2.5 text-sm text-gray-700 leading-relaxed">
+                    <span className="text-[#ec7913] font-bold mt-0.5">1.</span>
+                    <span>
+                      Pay a one-time registration fee of{" "}
+                      <strong className="text-[#00572f]">₦500</strong>
                     </span>
-                    <span>{text}</span>
                   </li>
-                ))}
-              </ul>
-
-              <div
-                style={{
-                  background: "#f0f7f3",
-                  border: "1px solid #c6dfd0",
-                  borderRadius: "8px",
-                  padding: "11px 14px",
-                  fontSize: "13px",
-                  color: "#2d6247",
-                  lineHeight: 1.55,
-                }}
-              >
-                <strong>For Ikot Ekpene people only.</strong> This programme is
-                under the leadership of Hon. Elder Aniefiok Nkom to help our
-                people find work and support.
+                  <li className="flex gap-2.5 text-sm text-gray-700 leading-relaxed">
+                    <span className="text-[#ec7913] font-bold mt-0.5">2.</span>
+                    <span>Enter your valid 11-digit NIN for verification</span>
+                  </li>
+                  <li className="flex gap-2.5 text-sm text-gray-700 leading-relaxed">
+                    <span className="text-[#ec7913] font-bold mt-0.5">3.</span>
+                    <span>
+                      Complete the registration form with your personal details
+                    </span>
+                  </li>
+                </ul>
               </div>
 
-              <div style={{ marginTop: "4px" }}>
-                <button className="modal-btn" onClick={onClose}>
-                  Start Registration →
+              <div className="bg-[#f0f7f3] border border-[#c6dfd0] rounded-lg p-3 text-[13px] text-[#2d6247] leading-relaxed">
+                <strong>For Ikot Ekpene indigenes only.</strong> This programme
+                is under the leadership of Hon. Elder Aniefiok Nkom to help our
+                people find sustainable employment and skills development
+                opportunities.
+              </div>
+
+              <div className="space-y-2 mt-1">
+                <p className="text-xs text-gray-500">
+                  ⚡ <strong>Note:</strong> The ₦500 fee helps cover
+                  verification and processing costs.
+                </p>
+                <button
+                  className="bg-[#ec7913] hover:bg-[#d46a0f] text-white font-['DM_Sans'] text-[15px] font-medium rounded-xl px-8 py-3 transition-all duration-200 hover:-translate-y-px cursor-pointer shadow-md hover:shadow-lg"
+                  onClick={onClose}
+                >
+                  Proceed to Registration →
                 </button>
               </div>
             </div>

@@ -1,115 +1,173 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Phone, ArrowRight, Loader2 } from "lucide-react";
 import { RegistrationHeader } from "@/components/RegistrationHeader";
-import { RegistrationIntro } from "@/components/RegistrationIntro";
-import { RegistrationForm } from "@/components/RegistrationForm";
-import { SuccessScreen } from "@/components/SuccessScreen";
 import { Footer } from "@/components/Footer";
+import { Button } from "@/components/Button";
 import { WelcomeModal } from "@/components/WelcomeModal";
-import { PageLoader } from "@/components/PageLoader";
-import { useGetAllDatabaseWards } from "@/services/tanstack";
-import { NinVerification } from "@/components/NinVerification";
+import { useCheckApplicant } from "@/services/tanstack";
+import { on } from "events";
+import { usePageLoader } from "@/contexts/useLoader";
 
-// Define the NinRecord type (should match the one in NinVerification component)
-export interface NinRecord {
-  firstName: string;
-  surname: string;
-  otherName?: string;
-  dob: string;
-  gender: string;
-  phone: string;
-  stateOfOrigin: string;
-}
-
-const Index = () => {
-  const [isSubmitted, setIsSubmitted] = useState(false);
+const HomePage = () => {
+  const router = useRouter();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [isNinVerified, setIsNinVerified] = useState(false);
-  const [verifiedNin, setVerifiedNin] = useState<string | null>(null);
-  const [ninData, setNinData] = useState<NinRecord | null>(null);
-  const { isPending: isDataFetching } = useGetAllDatabaseWards();
+  const { showLoader, hideLoader } = usePageLoader();
+
+  const {
+    mutateAsync: checkPhoneNumberExists,
+    isPending: isCheckingPhoneNumber,
+  } = useCheckApplicant();
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^0[0-9]{10}$/;
+    return phoneRegex.test(phone);
+  };
 
   useEffect(() => {
     setShowModal(true);
   }, []);
 
-  const handleNinVerified = (nin: string, record: NinRecord) => {
-    setVerifiedNin(nin);
-    setIsNinVerified(true);
-    setNinData(record);
-    setTimeout(() => {
-      const formElement = document.getElementById("registration-form");
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-  /**
-   * Called when the user clicks "Change NIN" inside RegistrationForm.
-   * Returns to the NIN verification step and wipes any partially entered form data
-   * (the form is unmounted, so Formik state is destroyed automatically).
-   */
-  const handleChangeNin = () => {
-    setIsNinVerified(false);
-    setVerifiedNin(null);
-    setNinData(null);
-  };
+    if (!phoneNumber.trim()) {
+      setError("Phone number is required");
+      return;
+    }
 
-  const handleSuccess = () => {
-    setIsSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    if (!validatePhoneNumber(phoneNumber)) {
+      setError(
+        "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
+      );
+      return;
+    }
 
-  const handleReset = () => {
-    setIsSubmitted(false);
-    setIsNinVerified(false);
-    setVerifiedNin(null);
-    setNinData(null);
-  };
-
-  if (isDataFetching) {
-    return (
-      <div className="flex bg-[#fafafa] justify-center items-center min-h-screen">
-        <PageLoader
-          title="Loading Data"
-          subtitle="Fetching data for registration."
-        />
-      </div>
+    showLoader(
+      "Verifying phone number...",
+      "Please wait while we check your registration status.",
+      true,
     );
-  }
+
+    try {
+      const exists = await checkPhoneNumberExists(
+        { phoneNumber },
+        {
+          onSuccess: (data) => {
+            console.log("Phone number exists:", data);
+            // if (data) {
+            //   // Phone number exists - proceed to NIN verification
+            //   router.push(`/verify-nin?phone=${encodeURIComponent(phoneNumber)}`);
+            // } else {
+            //   // Phone number doesn't exist - redirect to payment notification page
+            //   router.push(
+            //     `/payment-notification?phone=${encodeURIComponent(phoneNumber)}`,
+            //   );
+            // }
+          },
+          onError: (error: any) => {
+            if (error.message === "Applicant not found") {
+              router.push(
+                `/payment-notification?phone=${encodeURIComponent(phoneNumber)}`,
+              );
+            } else {
+              setError(
+                "An error occurred while checking the phone number. Please try again.",
+              );
+            }
+          },
+        },
+      );
+    } catch (err: any) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      hideLoader();
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fafafa]">
-      <RegistrationHeader />
-
+      {/* <RegistrationHeader /> */}
       <WelcomeModal open={showModal} onClose={() => setShowModal(false)} />
 
-      <main className="flex-1 container max-w-4xl mx-auto px-4 py-8">
-        {!isSubmitted ? (
-          <>
-            {/* Step 1: NIN Verification */}
-            {!isNinVerified ? (
-              <NinVerification onVerified={handleNinVerified} />
-            ) : (
-              <>
-                {/* Step 2: Registration Intro and Form */}
-                <div id="registration-form">
-                  <RegistrationIntro />
-                  <RegistrationForm
-                    onSuccess={handleSuccess}
-                    nin={verifiedNin!}
-                    ninData={ninData!}
-                    onChangeNin={handleChangeNin}
-                  />
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-[#e4ede8] shadow-lg overflow-hidden">
+          <div className="bg-linear-to-br from-[#f5f9f6] to-[#edf4ef] border-b border-[#e0ebe4] px-6 py-7 text-center">
+            <div className="w-16 h-16 bg-linear-to-br from-[#00572f] to-[#007a44] rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+              <Phone className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="font-['Playfair_Display'] text-3xl font-bold text-[#00572f] mb-2">
+              Get Started
+            </h1>
+            <div className="font-['DM_Sans'] font-semibold text-[15px] text-[#6b8a78]">
+              Enter your phone number to begin or continue with your
+              registration
+            </div>
+          </div>
+
+          <div className="px-7 py-8">
+            <form onSubmit={handleSubmit}>
+              <label
+                htmlFor="phone"
+                className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-2"
+              >
+                Phone Number <span className="text-[#ef4343]">*</span>
+              </label>
+              <div className="relative mb-2">
+                <Phone
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#8aab98]"
+                  size={18}
+                />
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="08012345678"
+                  disabled={isCheckingPhoneNumber}
+                  className="w-full pl-11 pr-3.5 py-3.5 border-[1.5px] border-[#d3ded9] rounded-xl bg-[#fafcfb] font-['DM_Sans'] text-base text-[#112219] outline-none focus:border-[#00572f] focus:ring-4 focus:ring-[#00572f]/10 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f3f8f5]"
+                  autoFocus
+                />
+              </div>
+              {error && (
+                <div className="font-['DM_Sans'] text-xs text-[#ef4343] mt-1.5 mb-3">
+                  {error}
                 </div>
-              </>
-            )}
-          </>
-        ) : (
-          <SuccessScreen onReset={handleReset} />
-        )}
+              )}
+              <div className="font-['DM_Sans'] font-bold text-xs text-[#8aab98] mt-1.5">
+                Enter the 11-digit phone number associated with your NIN
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isCheckingPhoneNumber}
+                className="w-full mt-5 bg-[#ec7913] hover:bg-[#ec7913]/90 text-white font-semibold py-3 text-base flex items-center justify-center gap-2"
+              >
+                {isCheckingPhoneNumber ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
+        </div>
       </main>
 
       <Footer />
@@ -117,4 +175,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default HomePage;

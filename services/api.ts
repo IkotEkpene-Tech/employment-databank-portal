@@ -24,3 +24,44 @@ export const submitApplications = async (uploadData: any) => {
     throw new Error(message);
   }
 };
+
+export const checkApplicant = async (
+  phoneNumber: any,
+  isFetchFull: boolean | any,
+) => {
+  try {
+    const response = await axios.post(
+    "/applicants/retrieve-applicant",
+    { phoneNumber },
+    {
+      params: { isFetchFull },
+    },
+  );
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(message);
+  }
+};
+
+export const initializePayment = async (phoneNumber: string | any) => {
+  const response = await axios.post("/payments/initialize", { phoneNumber });
+  return response.data;
+};
+
+
+export const verifyApplicantNin = async (
+phoneNumber:string,
+accessCode:string,
+nin:string,
+) => {
+  try {
+    const response = await axios.post("/applicants/verify-nin", { phoneNumber, accessCode, nin });
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(message);
+  }
+};

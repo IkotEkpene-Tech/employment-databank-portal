@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import { RegistrationHeader } from "@/components/RegistrationHeader";
+import { PageLoaderProvider } from "@/contexts/useLoader";
+import PhoneGuard from "@/hooks/PhoneGuard";
 
 export const metadata: Metadata = {
   title:
@@ -17,7 +20,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <PageLoaderProvider>
+            <PhoneGuard>
+              <RegistrationHeader />
+              {children}
+            </PhoneGuard>
+          </PageLoaderProvider>
+        </Providers>
       </body>
     </html>
   );
