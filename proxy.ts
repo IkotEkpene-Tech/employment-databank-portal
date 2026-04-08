@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!MAINTENANCE_MODE || pathname === "/coming-soon") {

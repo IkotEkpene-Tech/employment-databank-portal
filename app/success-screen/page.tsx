@@ -1,15 +1,13 @@
+"use client";
+
 import { SuccessScreen } from '@/components/SuccessScreen';
-import React from 'react';
 
 const page = () => {
-    const handleReset = () => {
-        window.location.href = "/";
-    }
-    return (
+  return (
     <div>
-<SuccessScreen onReset={handleReset} />
+      <SuccessScreen />
     </div>
-    );
+  );
 }
 
 export default page;

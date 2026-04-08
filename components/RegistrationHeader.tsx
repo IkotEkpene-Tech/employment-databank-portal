@@ -3,12 +3,9 @@ import Image from "next/image";
 export const RegistrationHeader = () => {
   return (
     <header className="relative overflow-hidden bg-linear-to-br from-[#003d20] via-[#00572f] to-[#006b39]">
-      {/* Subtle geometric background pattern */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_80%_50%,rgba(255,255,255,0.04)_0%,transparent_60%),radial-gradient(circle_at_10%_80%,rgba(0,0,0,0.1)_0%,transparent_50%)]" />
 
-      {/* Header inner container */}
       <div className="relative z-10 max-w-275 mx-auto px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        {/* Left: Identity */}
         <div className="flex items-center gap-3.5">
           <div className="shrink-0 w-15 h-15 rounded-full bg-white/12 border border-white/25 flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
             <Image
@@ -30,10 +27,8 @@ export const RegistrationHeader = () => {
           </div>
         </div>
 
-        {/* Vertical divider - hidden on mobile */}
         <div className="hidden sm:block w-px h-12 bg-white/15 shrink-0" />
 
-        {/* Right: Partner logos */}
         <div className="flex items-center gap-2.5 justify-start sm:justify-end">
           <span className="font-['DM_Sans'] text-[10px] text-white/45 uppercase tracking-widest mr-1 whitespace-nowrap">
             In partnership with
@@ -69,16 +64,8 @@ export const RegistrationHeader = () => {
         </div>
       </div>
 
-      {/* Shimmer accent bar */}
-      <div className="h-0.5 bg-linear-to-r from-[#ec7913] via-[#f5a64d] to-[#ec7913] bg-size-[200%_100%] animate-[shimmer_3s_ease-in-out_infinite]" />
-
-      {/* Add custom keyframes for shimmer animation */}
-      <style>{`
-        @keyframes shimmer {
-          0%, 100% { background-position: 0% 0%; }
-          50% { background-position: 100% 0%; }
-        }
-      `}</style>
+      {/* Shimmer accent bar — keyframes defined in globals.css */}
+      <div className="h-0.5 bg-linear-to-r from-[#ec7913] via-[#f5a64d] to-[#ec7913] bg-size-[200%_100%] animate-shimmer" />
     </header>
   );
 };

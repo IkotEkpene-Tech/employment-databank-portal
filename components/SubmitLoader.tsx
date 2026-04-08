@@ -3,56 +3,16 @@ import { Loader2 } from "lucide-react";
 
 export const SubmitLoader = () => {
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.45)",
-        backdropFilter: "blur(2px)",
-        zIndex: 9999,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "16px",
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        <Loader2
-          style={{ width: "52px", height: "52px", color: "#ec7913" }}
-          className="animate-spin"
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "50%",
-            border: "2px solid #ec7913",
-            opacity: 0.3,
-          }}
-          className="animate-ping"
-        />
+    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-9999 flex flex-col items-center justify-center gap-4">
+      <div className="relative">
+        <Loader2 className="w-14 h-14 text-[#ec7913] animate-spin" />
+        <div className="absolute inset-0 rounded-full border-2 border-[#ec7913] opacity-30 animate-ping" />
       </div>
-      <div style={{ textAlign: "center" }}>
-        <h3
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "18px",
-            fontWeight: 600,
-            color: "#ffffff",
-            margin: "0 0 4px",
-          }}
-        >
+      <div className="text-center">
+        <h3 className="font-['DM_Sans'] text-lg font-semibold text-white mb-1">
           Submitting your application...
         </h3>
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "16px",
-            color: "rgba(255,255,255,0.75)",
-            margin: 0,
-          }}
-        >
+        <p className="font-['DM_Sans'] text-base text-white/75">
           Please wait, do not close this page.
         </p>
       </div>

@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -43,11 +44,8 @@ interface NinRecord {
 
 interface RegistrationFormProps {
   onSuccess: () => void;
-  /** The verified NIN string from the verification step */
   nin: string;
-  /** The full NIN record fetched from Lumiid */
   ninData: NinRecord;
-  /** Called when the user wants to change their NIN — navigates back */
   onChangeNin: () => void;
 }
 
@@ -76,10 +74,12 @@ const validationSchema = Yup.object({
   phoneNumber: Yup.string()
     .matches(
       /^0[0-9]{10}$/,
-      "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
+      "Enter a valid 11-digit phone number starting with 0",
     )
     .required("Phone number is required"),
-  email: Yup.string().required("Email is required").email("Enter a valid email address"),
+  email: Yup.string()
+    .required("Email is required")
+    .email("Enter a valid email address"),
   vin: Yup.string()
     .min(19, "VIN must be at least 19 characters")
     .required("Voter Identification Number (VIN) is required"),
@@ -127,7 +127,7 @@ const validationSchema = Yup.object({
     is: "Other",
     then: (schema) => schema.required("Please specify your skill"),
   }),
-  skillAcquisition: Yup.string(), // optional
+  skillAcquisition: Yup.string(),
   otherSkillAcquisition: Yup.string().when("skillAcquisition", {
     is: "Other",
     then: (schema) =>
@@ -137,7 +137,7 @@ const validationSchema = Yup.object({
   villageHeadPhone: Yup.string()
     .matches(
       /^0[0-9]{10}$/,
-      "Enter a valid 11-digit phone number starting with 0 (e.g., 08062898015)",
+      "Enter a valid 11-digit phone number starting with 0",
     )
     .required("Village head phone number is required"),
   certificateOfOrigin: Yup.mixed()
@@ -161,6 +161,95 @@ const validationSchema = Yup.object({
     ),
 });
 
+// ─── Reusable sub-components ──────────────────────────────────────────────────
+
+const CardHeader = ({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) => (
+  <div className="bg-linear-to-br from-[#f5f9f6] to-[#edf4ef] border-b border-[#e0ebe4] px-6 py-4 flex items-center gap-3">
+    <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#00572f] to-[#007a44] flex items-center justify-center shrink-0 shadow-md">
+      {icon}
+    </div>
+    <div>
+      <h3 className="font-['Playfair_Display'] text-base font-bold text-[#00572f] leading-tight">
+        {title}
+      </h3>
+      <p className="font-['DM_Sans'] text-xs text-[#6b8a78] mt-0.5">
+        {subtitle}
+      </p>
+    </div>
+  </div>
+);
+
+const FieldLabel = ({
+  children,
+  required,
+  optional,
+}: {
+  children: React.ReactNode;
+  required?: boolean;
+  optional?: boolean;
+}) => (
+  <label className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-1.5">
+    {children}
+    {required && <span className="text-[#ef4343] ml-0.5">*</span>}
+    {optional && (
+      <span className="text-[#8aab98] font-normal text-[11px] ml-1">
+        (Optional)
+      </span>
+    )}
+  </label>
+);
+
+const inputClass =
+  "w-full text-[#112219] px-3.5 py-2.5 border-[1.5px] border-[#d3ded9] rounded-xl bg-[#fafcfb] font-['DM_Sans'] text-sm outline-none focus:border-[#00572f] focus:ring-4 focus:ring-[#00572f]/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-[#aabdb4]";
+
+const FieldError = ({ name }: { name: string }) => (
+  <ErrorMessage
+    name={name}
+    component="p"
+    className="font-['DM_Sans'] text-xs text-[#ef4343] mt-1"
+  />
+);
+
+const UploadZone = ({
+  fileName,
+  icon,
+  label,
+  hint,
+  onChange,
+}: {
+  fileName?: string;
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+  onChange: (file: File | null) => void;
+}) => (
+  <label className="block w-full border-2 border-dashed border-[#c0d9ca] rounded-xl p-5 text-center bg-[#f8fbf9] cursor-pointer hover:border-[#00572f] hover:bg-[#edf5f0] transition-all">
+    <input
+      type="file"
+      accept=".pdf,.jpg,.jpeg,.png"
+      className="hidden"
+      onChange={(e) => onChange(e.target.files?.[0] || null)}
+    />
+    <div className="pointer-events-none">
+      <div className="w-9 h-9 bg-linear-to-br from-[#00572f] to-[#007a44] rounded-full flex items-center justify-center mx-auto mb-2">
+        {icon}
+      </div>
+      <p className="font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-0.5">
+        {fileName || label}
+      </p>
+      <p className="font-['DM_Sans'] text-xs text-[#8aab98]">{hint}</p>
+    </div>
+  </label>
+);
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const RegistrationForm = ({
@@ -174,27 +263,25 @@ export const RegistrationForm = ({
   const { addAlert } = useAlert();
   const wards = allWards?.data || [];
 
-  // ── Guard: if somehow no NIN, redirect back ─────────────────────────────────
   useEffect(() => {
-    if (!nin || !ninData) {
-      onChangeNin();
-    }
+    if (!nin || !ninData) onChangeNin();
   }, [nin, ninData, onChangeNin]);
 
   const [errorModal, setErrorModal] = useState<{
     open: boolean;
     message: string;
-  }>({ open: false, message: "" });
+  }>({
+    open: false,
+    message: "",
+  });
 
   const showError = (message: string) => setErrorModal({ open: true, message });
   const closeError = () => setErrorModal({ open: false, message: "" });
 
-  // Pre-fill from NIN data
   const initialValues = {
     surname: ninData?.surname ?? "",
     firstName: ninData?.firstName ?? "",
     otherName: ninData?.otherName ?? "",
-    // dob comes from NIN — read-only, not in Formik state (sent separately)
     gender:
       ninData?.gender?.toLowerCase() === "female"
         ? "female"
@@ -233,37 +320,26 @@ export const RegistrationForm = ({
     { setSubmitting, validateForm }: any,
   ) => {
     const errors = await validateForm(values);
-
     if (Object.keys(errors).length > 0) {
-      const firstError = getFirstError(errors);
-      showError(firstError);
+      showError(getFirstError(errors));
       setSubmitting(false);
       return;
     }
 
     const formData = new FormData();
-
-    // NIN fields (from verification — not editable)
     formData.append("nin", nin);
     formData.append("dateOfBirth", ninData.dob);
 
-    // All form values
     Object.entries(values).forEach(([key, value]) => {
       if (key === "certificate" || key === "certificateOfOrigin") {
         if (value instanceof File) formData.append(key, value);
       } else if (value !== null && value !== "") {
-        if(value === 'email'){
-          formData.append(key, String(value).toLowerCase());
-        } else {
-          formData.append(key, String(value));
-        }
+        formData.append(key, String(value));
       }
     });
 
     submitApplication(formData, {
-      onSuccess: (data: any) => {
-        onSuccess();
-      },
+      onSuccess: () => onSuccess(),
       onError: (error: any) => {
         showError(
           error?.message ?? "An unexpected error occurred. Please try again.",
@@ -272,39 +348,10 @@ export const RegistrationForm = ({
     });
   };
 
-  // ── Styles ──────────────────────────────────────────────────────────────────
-  const styles = `
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
-    .rf-card { background:#fff; border-radius:16px; border:1px solid #e4ede8; box-shadow:0 2px 16px rgba(0,60,30,0.06); overflow:hidden; }
-    .rf-card-header { background:linear-gradient(135deg,#f5f9f6 0%,#edf4ef 100%); border-bottom:1px solid #e0ebe4; padding:15px 22px; display:flex; align-items:center; gap:10px; }
-    .rf-card-icon { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#00572f,#007a44); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,87,47,0.25); }
-    .rf-card-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:#00572f; margin:0; line-height:1.2; }
-    .rf-card-subtitle { font-family:'DM Sans',sans-serif; font-size:12px; color:#6b8a78; margin:2px 0 0; }
-    .rf-card-body { padding:20px 22px 24px; }
-    .rf-field-label { display:block; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:#1a3d2b; margin-bottom:6px; }
-    .rf-input { width:100%; color:#112219; padding:10px 14px; border:1.5px solid #d3ded9; border-radius:10px; background:#fafcfb; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.15s,box-shadow 0.15s; box-sizing:border-box; }
-    .rf-input:focus { border-color:#00572f; box-shadow:0 0 0 3px rgba(0,87,47,0.1); }
-    .rf-input::placeholder { color:#aabdb4; }
-    .rf-input:disabled { opacity:0.5; cursor:not-allowed; }
-    .rf-error { font-family:'DM Sans',sans-serif; font-size:12px; color:#ef4343; margin-top:4px; }
-    .rf-optional { color:#8aab98; font-weight:400; font-size:11px; margin-left:4px; }
-    .rf-radio-pill { display:flex; align-items:center; gap:8px; padding:10px 18px; border:1.5px solid #d3ded9; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; color:#1a3d2b; background:#fafcfb; transition:border-color 0.15s,background 0.15s; user-select:none; }
-    .rf-radio-pill:has(input:checked) { border-color:#00572f; background:#edf5f0; color:#00572f; }
-    .rf-radio-pill:hover { border-color:#7db898; }
-    .rf-upload-zone { border:2px dashed #c0d9ca; border-radius:10px; padding:20px; text-align:center; background:#f8fbf9; cursor:pointer; transition:border-color 0.2s,background 0.2s; display:block; width:100%; box-sizing:border-box; }
-    .rf-upload-zone:hover { border-color:#00572f; background:#edf5f0; }
-    .rf-nin-pill { display:flex; align-items:center; gap:10px; background:#f0f8f4; border:1.5px solid #b8deca; border-radius:10px; padding:10px 14px; }
-    .rf-nin-pill-label { font-family:'DM Sans',sans-serif; font-size:12px; color:#6b8a78; margin-bottom:1px; }
-    .rf-nin-pill-value { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; color:#00572f; letter-spacing:0.06em; font-variant-numeric:tabular-nums; }
-    .rf-readonly-field { width:100%; color:#1a3d2b; padding:10px 14px; border:1.5px solid #e0ebe4; border-radius:10px; background:#f3f8f5; font-family:'DM Sans',sans-serif; font-size:14px; box-sizing:border-box; cursor:not-allowed; }
-  `;
-
   const maskNin = (n: string) => `●●●●●●●${n.slice(-4)}`;
 
   return (
     <>
-      <style>{styles}</style>
-
       {isPending && <SubmitLoader />}
 
       <ValidationErrorModal
@@ -328,69 +375,34 @@ export const RegistrationForm = ({
           return (
             <Form className="space-y-5">
               {/* ── NIN Banner ─────────────────────────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <CreditCard className="w-4 h-4" style={{ color: "#fff" }} />
-                  </div>
-                  <div>
-                    <h3 className="rf-card-title">Verified Identity</h3>
-                    <p className="rf-card-subtitle">
-                      Your NIN has been confirmed for this session
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body">
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<CreditCard className="w-4 h-4 text-white" />}
+                  title="Verified Identity"
+                  subtitle="Your NIN has been confirmed for this session"
+                />
+                <div className="px-6 py-5">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="rf-nin-pill flex-1 min-w-0">
-                      <div
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg,#00572f,#007a44)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <CreditCard
-                          style={{
-                            width: "14px",
-                            height: "14px",
-                            color: "#fff",
-                          }}
-                        />
+                    <div className="flex items-center gap-3 flex-1 min-w-0 bg-[#f0f8f4] border border-[#b8deca] rounded-xl px-4 py-3">
+                      <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#00572f] to-[#007a44] flex items-center justify-center shrink-0">
+                        <CreditCard className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div>
-                        <p className="rf-nin-pill-label">NIN</p>
-                        <p className="rf-nin-pill-value">{maskNin(nin)}</p>
+                        <p className="font-['DM_Sans'] text-xs text-[#6b8a78] mb-0.5">
+                          NIN
+                        </p>
+                        <p className="font-['DM_Sans'] text-sm font-bold text-[#00572f] tracking-wider tabular-nums">
+                          {maskNin(nin)}
+                        </p>
                       </div>
                     </div>
-
                     <button
                       type="button"
                       onClick={onChangeNin}
                       disabled={isPending}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "9px 16px",
-                        border: "1.5px solid #d3ded9",
-                        borderRadius: "8px",
-                        background: isPending ? "#f3f8f5" : "#fff",
-                        color: isPending ? "#aabdb4" : "#5c7a69",
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: isPending ? "not-allowed" : "pointer",
-                        whiteSpace: "nowrap",
-                        transition: "border-color 0.15s, color 0.15s",
-                      }}
+                      className="flex items-center gap-1.5 px-4 py-2.5 border-[1.5px] border-[#d3ded9] rounded-lg bg-white text-[#5c7a69] font-['DM_Sans'] text-sm font-semibold hover:border-[#7db898] transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
-                      <RefreshCw style={{ width: "13px", height: "13px" }} />
+                      <RefreshCw className="w-3.5 h-3.5" />
                       Change NIN
                     </button>
                   </div>
@@ -398,81 +410,51 @@ export const RegistrationForm = ({
               </div>
 
               {/* ── Personal Information ────────────────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <User className="w-4 h-4" style={{ color: "#fff" }} />
-                  </div>
-                  <div>
-                    <h3 className="rf-card-title">Personal Information</h3>
-                    <p className="rf-card-subtitle">
-                      Tell us your name and how to reach you
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body space-y-4">
-                  {/* Name row */}
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<User className="w-4 h-4 text-white" />}
+                  title="Personal Information"
+                  subtitle="Tell us your name and how to reach you"
+                />
+                <div className="px-6 py-5 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="rf-field-label">
-                        Surname <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Surname</FieldLabel>
                       <Field
                         name="surname"
                         type="text"
                         placeholder="eg: Akpan"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="surname"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="surname" />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        First Name <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>First Name</FieldLabel>
                       <Field
                         name="firstName"
                         type="text"
                         placeholder="eg: Uduak"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="firstName"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="firstName" />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        Other Name{" "}
-                        <span className="rf-optional">(Optional)</span>
-                      </label>
+                      <FieldLabel optional>Other Name</FieldLabel>
                       <Field
                         name="otherName"
                         type="text"
                         placeholder="eg: Tom"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="otherName"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="otherName" />
                     </div>
                   </div>
 
-                  {/* DOB + Gender row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="rf-field-label">
+                      <label className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-1.5">
                         Date of Birth
-                        <span
-                          className="rf-optional"
-                          style={{ marginLeft: "6px" }}
-                        >
+                        <span className="text-[#8aab98] font-normal text-[11px] ml-1">
                           (from NIN — cannot be edited)
                         </span>
                       </label>
@@ -480,88 +462,55 @@ export const RegistrationForm = ({
                         type="text"
                         readOnly
                         value={ninData?.dob ?? ""}
-                        className="rf-readonly-field"
+                        className="w-full text-[#1a3d2b] px-3.5 py-2.5 border-[1.5px] border-[#e0ebe4] rounded-xl bg-[#f3f8f5] font-['DM_Sans'] text-sm cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        Gender <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
-                      <Field as="select" name="gender" className="rf-input">
+                      <FieldLabel required>Gender</FieldLabel>
+                      <Field as="select" name="gender" className={inputClass}>
                         <option value="">Select gender</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                       </Field>
-                      <ErrorMessage
-                        name="gender"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="gender" />
                     </div>
                   </div>
 
-                  {/* Phone + Email row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="rf-field-label">
-                        Phone Number <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Phone Number</FieldLabel>
                       <Field
                         name="phoneNumber"
                         type="tel"
                         placeholder="08012345678"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="phoneNumber"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="phoneNumber" />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        Email Address{" "}
-                        <span className="rf-optional">(Optional)</span>
-                      </label>
+                      <FieldLabel optional>Email Address</FieldLabel>
                       <Field
                         name="email"
                         type="email"
                         placeholder="example@email.com"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="email"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="email" />
                     </div>
                   </div>
 
-                  {/* VIN */}
                   <div>
-                    <label className="rf-field-label">
-                      Voter Identification Number (VIN){" "}
-                      <span style={{ color: "#ef4343" }}>*</span>
-                    </label>
+                    <FieldLabel required>
+                      Voter Identification Number (VIN)
+                    </FieldLabel>
                     <Field
                       name="vin"
                       type="text"
                       placeholder="Enter your 19+ character VIN"
-                      className="rf-input"
+                      className={inputClass}
                     />
-                    <ErrorMessage
-                      name="vin"
-                      component="p"
-                      className="rf-error"
-                    />
-                    <p
-                      style={{
-                        fontFamily: "'DM Sans',sans-serif",
-                        fontSize: "11px",
-                        color: "#8aab98",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <FieldError name="vin" />
+                    <p className="font-['DM_Sans'] text-xs text-[#8aab98] mt-1">
                       Found on your Permanent Voter's Card (PVC). Must be at
                       least 19 characters.
                     </p>
@@ -570,28 +519,20 @@ export const RegistrationForm = ({
               </div>
 
               {/* ── Location Details ────────────────────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <MapPin className="w-4 h-4" style={{ color: "#fff" }} />
-                  </div>
-                  <div>
-                    <h3 className="rf-card-title">Where Are You From?</h3>
-                    <p className="rf-card-subtitle">
-                      Select your ward and village within Ikot Ekpene
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body">
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<MapPin className="w-4 h-4 text-white" />}
+                  title="Where Are You From?"
+                  subtitle="Select your ward and village within Ikot Ekpene"
+                />
+                <div className="px-6 py-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="rf-field-label">
-                        Ward <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Ward</FieldLabel>
                       <Field
                         as="select"
                         name="ward"
-                        className="rf-input"
+                        className={inputClass}
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                           setFieldValue("ward", e.target.value);
                           setFieldValue("village", "");
@@ -604,21 +545,15 @@ export const RegistrationForm = ({
                           </option>
                         ))}
                       </Field>
-                      <ErrorMessage
-                        name="ward"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="ward" />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        Village <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Village</FieldLabel>
                       <Field
                         as="select"
                         name="village"
                         disabled={!values.ward}
-                        className="rf-input"
+                        className={inputClass}
                       >
                         <option value="">Select your village</option>
                         {villageOptions.map((v: any) => (
@@ -627,20 +562,9 @@ export const RegistrationForm = ({
                           </option>
                         ))}
                       </Field>
-                      <ErrorMessage
-                        name="village"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="village" />
                       {!values.ward && (
-                        <p
-                          style={{
-                            fontFamily: "'DM Sans',sans-serif",
-                            fontSize: "12px",
-                            color: "#8aab98",
-                            marginTop: "4px",
-                          }}
-                        >
+                        <p className="font-['DM_Sans'] text-xs text-[#8aab98] mt-1">
                           Select a ward first
                         </p>
                       )}
@@ -650,65 +574,44 @@ export const RegistrationForm = ({
               </div>
 
               {/* ── Education ───────────────────────────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <GraduationCap
-                      className="w-4 h-4"
-                      style={{ color: "#fff" }}
-                    />
-                  </div>
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<GraduationCap className="w-4 h-4 text-white" />}
+                  title="Educational Qualification"
+                  subtitle="Have you been to school? Tell us what level you reached"
+                />
+                <div className="px-6 py-5 space-y-4">
                   <div>
-                    <h3 className="rf-card-title">Educational Qualification</h3>
-                    <p className="rf-card-subtitle">
-                      Have you been to school? Tell us what level you reached
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body space-y-4">
-                  <div>
-                    <label className="rf-field-label">
-                      Do you have any educational qualification?{" "}
-                      <span style={{ color: "#ef4343" }}>*</span>
-                    </label>
+                    <FieldLabel required>
+                      Do you have any educational qualification?
+                    </FieldLabel>
                     <div className="flex gap-3">
-                      <label className="rf-radio-pill">
-                        <Field
-                          type="radio"
-                          name="hasEducation"
-                          value="yes"
-                          className="w-4 h-4"
-                        />
-                        <span>Yes</span>
-                      </label>
-                      <label className="rf-radio-pill">
-                        <Field
-                          type="radio"
-                          name="hasEducation"
-                          value="no"
-                          className="w-4 h-4"
-                        />
-                        <span>No</span>
-                      </label>
+                      {["yes", "no"].map((val) => (
+                        <label
+                          key={val}
+                          className="flex items-center gap-2 px-5 py-2.5 border-[1.5px] border-[#d3ded9] rounded-lg cursor-pointer font-['DM_Sans'] text-sm font-medium text-[#1a3d2b] bg-[#fafcfb] hover:border-[#7db898] transition-all has-checked:border-[#00572f] has-checked:bg-[#edf5f0] has-checked:text-[#00572f]"
+                        >
+                          <Field
+                            type="radio"
+                            name="hasEducation"
+                            value={val}
+                            className="w-4 h-4"
+                          />
+                          <span className="capitalize">{val}</span>
+                        </label>
+                      ))}
                     </div>
-                    <ErrorMessage
-                      name="hasEducation"
-                      component="p"
-                      className="rf-error"
-                    />
+                    <FieldError name="hasEducation" />
                   </div>
 
                   {values.hasEducation === "yes" && (
-                    <div className="space-y-4 pt-2">
+                    <div className="space-y-4 pt-1">
                       <div>
-                        <label className="rf-field-label">
-                          Highest Qualification{" "}
-                          <span style={{ color: "#ef4343" }}>*</span>
-                        </label>
+                        <FieldLabel required>Highest Qualification</FieldLabel>
                         <Field
                           as="select"
                           name="highestQualification"
-                          className="rf-input"
+                          className={inputClass}
                         >
                           <option value="">
                             Select your highest qualification
@@ -719,21 +622,17 @@ export const RegistrationForm = ({
                             </option>
                           ))}
                         </Field>
-                        <ErrorMessage
-                          name="highestQualification"
-                          component="p"
-                          className="rf-error"
-                        />
+                        <FieldError name="highestQualification" />
                       </div>
+
                       <div>
-                        <label className="rf-field-label">
-                          Discipline / Course of Study{" "}
-                          <span style={{ color: "#ef4343" }}>*</span>
-                        </label>
+                        <FieldLabel required>
+                          Discipline / Course of Study
+                        </FieldLabel>
                         <Field
                           as="select"
                           name="discipline"
-                          className="rf-input"
+                          className={inputClass}
                         >
                           <option value="">Select your discipline</option>
                           {disciplines.map((d) => (
@@ -742,99 +641,42 @@ export const RegistrationForm = ({
                             </option>
                           ))}
                         </Field>
-                        <ErrorMessage
-                          name="discipline"
-                          component="p"
-                          className="rf-error"
-                        />
+                        <FieldError name="discipline" />
                       </div>
 
                       {values.discipline === "Other" && (
                         <div>
-                          <label className="rf-field-label">
-                            Specify Your Discipline{" "}
-                            <span style={{ color: "#ef4343" }}>*</span>
-                          </label>
+                          <FieldLabel required>
+                            Specify Your Discipline
+                          </FieldLabel>
                           <Field
                             name="otherDiscipline"
                             type="text"
                             placeholder="Enter your course of study"
-                            className="rf-input"
+                            className={inputClass}
                           />
-                          <ErrorMessage
-                            name="otherDiscipline"
-                            component="p"
-                            className="rf-error"
-                          />
+                          <FieldError name="otherDiscipline" />
                         </div>
                       )}
+
                       <div>
-                        <label className="rf-field-label">
-                          Upload Certificate{" "}
-                          <span className="rf-optional">(Optional)</span>
-                        </label>
-                        <label className="rf-upload-zone">
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            style={{ display: "none" }}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0] || null;
-                              setFieldValue("certificate", file);
-                            }}
-                          />
-                          <div style={{ pointerEvents: "none" }}>
-                            <div
-                              style={{
-                                width: "36px",
-                                height: "36px",
-                                background:
-                                  "linear-gradient(135deg,#00572f,#007a44)",
-                                borderRadius: "50%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                margin: "0 auto 8px",
-                              }}
-                            >
-                              <GraduationCap
-                                style={{
-                                  width: "18px",
-                                  height: "18px",
-                                  color: "#fff",
-                                }}
-                              />
-                            </div>
-                            <p
-                              style={{
-                                fontFamily: "'DM Sans',sans-serif",
-                                fontSize: "13px",
-                                fontWeight: 600,
-                                color: "#1a3d2b",
-                                margin: "0 0 2px",
-                              }}
-                            >
-                              {values.certificate
-                                ? (values.certificate as File).name
-                                : "Click to upload your certificate"}
-                            </p>
-                            <p
-                              style={{
-                                fontFamily: "'DM Sans',sans-serif",
-                                fontSize: "11px",
-                                color: "#8aab98",
-                                margin: 0,
-                              }}
-                            >
-                              PDF, JPG or PNG — max 5MB
-                            </p>
-                          </div>
-                        </label>
-                        <ErrorMessage
-                          name="certificate"
-                          component="p"
-                          className="rf-error"
+                        <FieldLabel optional>Upload Certificate</FieldLabel>
+                        <UploadZone
+                          fileName={
+                            values.certificate
+                              ? (values.certificate as File).name
+                              : undefined
+                          }
+                          icon={
+                            <GraduationCap className="w-4 h-4 text-white" />
+                          }
+                          label="Click to upload your certificate"
+                          hint="PDF, JPG or PNG — max 5MB"
+                          onChange={(file) =>
+                            setFieldValue("certificate", file)
+                          }
                         />
+                        <FieldError name="certificate" />
                       </div>
                     </div>
                   )}
@@ -842,31 +684,19 @@ export const RegistrationForm = ({
               </div>
 
               {/* ── Skills ──────────────────────────────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <Wrench className="w-4 h-4" style={{ color: "#fff" }} />
-                  </div>
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<Wrench className="w-4 h-4 text-white" />}
+                  title="Skill (What skills do you have?)"
+                  subtitle="Tell us what you can do and what you'd like to learn"
+                />
+                <div className="px-6 py-5 space-y-4">
                   <div>
-                    <h3 className="rf-card-title">
-                      Skill (What skills do you have?)
-                    </h3>
-                    <p className="rf-card-subtitle">
-                      Tell us what you can do and what you'd like to learn
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body space-y-4">
-                  {/* Current skill */}
-                  <div>
-                    <label className="rf-field-label">
-                      Your Primary Skill{" "}
-                      <span style={{ color: "#ef4343" }}>*</span>
-                    </label>
+                    <FieldLabel required>Your Primary Skill</FieldLabel>
                     <Field
                       as="select"
                       name="vocationalSkill"
-                      className="rf-input"
+                      className={inputClass}
                     >
                       <option value="">Select your primary skill</option>
                       {vocationalSkills.map((s) => (
@@ -875,43 +705,30 @@ export const RegistrationForm = ({
                         </option>
                       ))}
                     </Field>
-                    <ErrorMessage
-                      name="vocationalSkill"
-                      component="p"
-                      className="rf-error"
-                    />
+                    <FieldError name="vocationalSkill" />
                   </div>
 
                   {values.vocationalSkill === "Other" && (
                     <div>
-                      <label className="rf-field-label">
-                        Specify Your Skill{" "}
-                        <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Specify Your Skill</FieldLabel>
                       <Field
                         name="otherSkill"
                         type="text"
                         placeholder="Enter your specific skill"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="otherSkill"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="otherSkill" />
                     </div>
                   )}
 
-                  {/* Skill acquisition */}
                   <div>
-                    <label className="rf-field-label">
-                      Skill Acquisition (What skills would you like to learn?){" "}
-                      <span className="rf-optional">(Optional)</span>
-                    </label>
+                    <FieldLabel optional>
+                      Skill Acquisition (What skills would you like to learn?)
+                    </FieldLabel>
                     <Field
                       as="select"
                       name="skillAcquisition"
-                      className="rf-input"
+                      className={inputClass}
                     >
                       <option value="">
                         Select a skill you'd like to learn
@@ -922,167 +739,80 @@ export const RegistrationForm = ({
                         </option>
                       ))}
                     </Field>
-                    <ErrorMessage
-                      name="skillAcquisition"
-                      component="p"
-                      className="rf-error"
-                    />
+                    <FieldError name="skillAcquisition" />
                   </div>
 
                   {values.skillAcquisition === "Other" && (
                     <div>
-                      <label className="rf-field-label">
-                        Specify Skill to Learn{" "}
-                        <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Specify Skill to Learn</FieldLabel>
                       <Field
                         name="otherSkillAcquisition"
                         type="text"
                         placeholder="Enter the skill you want to learn"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="otherSkillAcquisition"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="otherSkillAcquisition" />
                     </div>
                   )}
                 </div>
               </div>
 
               {/* ── Village Authority Verification ──────────────────────────── */}
-              <div className="rf-card">
-                <div className="rf-card-header">
-                  <div className="rf-card-icon">
-                    <Shield className="w-4 h-4" style={{ color: "#fff" }} />
-                  </div>
-                  <div>
-                    <h3 className="rf-card-title">
-                      Village Authority Verification
-                    </h3>
-                    <p className="rf-card-subtitle">
-                      We need to confirm you are truly from Ikot Ekpene
-                    </p>
-                  </div>
-                </div>
-                <div className="rf-card-body space-y-4">
-                  <p
-                    style={{
-                      fontFamily: "'DM Sans',sans-serif",
-                      fontSize: "13px",
-                      color: "#5c7166",
-                      margin: "0 0 4px",
-                    }}
-                  >
+              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+                <CardHeader
+                  icon={<Shield className="w-4 h-4 text-white" />}
+                  title="Village Authority Verification"
+                  subtitle="We need to confirm you are truly from Ikot Ekpene"
+                />
+                <div className="px-6 py-5 space-y-4">
+                  <p className="font-['DM_Sans'] text-sm text-[#5c7166]">
                     Provide the contact details of your village head for
                     verification purposes.
                   </p>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="rf-field-label">
-                        Name of Village Head{" "}
-                        <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>Name of Village Head</FieldLabel>
                       <Field
                         name="villageHeadName"
                         type="text"
                         placeholder="Enter village head's name"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="villageHeadName"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="villageHeadName" />
                     </div>
                     <div>
-                      <label className="rf-field-label">
-                        Phone Number of Village Head{" "}
-                        <span style={{ color: "#ef4343" }}>*</span>
-                      </label>
+                      <FieldLabel required>
+                        Phone Number of Village Head
+                      </FieldLabel>
                       <Field
                         name="villageHeadPhone"
                         type="tel"
                         placeholder="08012345678"
-                        className="rf-input"
+                        className={inputClass}
                       />
-                      <ErrorMessage
-                        name="villageHeadPhone"
-                        component="p"
-                        className="rf-error"
-                      />
+                      <FieldError name="villageHeadPhone" />
                     </div>
                   </div>
 
-                  {/* Certificate of Origin upload */}
                   <div>
-                    <label className="rf-field-label">
-                      Upload Certificate of Origin{" "}
-                      <span style={{ color: "#ef4343" }}>*</span>
-                    </label>
-                    <label className="rf-upload-zone">
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          setFieldValue("certificateOfOrigin", file);
-                        }}
-                      />
-                      <div style={{ pointerEvents: "none" }}>
-                        <div
-                          style={{
-                            width: "36px",
-                            height: "36px",
-                            background:
-                              "linear-gradient(135deg,#00572f,#007a44)",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            margin: "0 auto 8px",
-                          }}
-                        >
-                          <Shield
-                            style={{
-                              width: "18px",
-                              height: "18px",
-                              color: "#fff",
-                            }}
-                          />
-                        </div>
-                        <p
-                          style={{
-                            fontFamily: "'DM Sans',sans-serif",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#1a3d2b",
-                            margin: "0 0 2px",
-                          }}
-                        >
-                          {values.certificateOfOrigin
-                            ? (values.certificateOfOrigin as File).name
-                            : "Click to upload your Certificate of Origin"}
-                        </p>
-                        <p
-                          style={{
-                            fontFamily: "'DM Sans',sans-serif",
-                            fontSize: "11px",
-                            color: "#8aab98",
-                            margin: 0,
-                          }}
-                        >
-                          PDF, JPG or PNG — max 5MB
-                        </p>
-                      </div>
-                    </label>
-                    <ErrorMessage
-                      name="certificateOfOrigin"
-                      component="p"
-                      className="rf-error"
+                    <FieldLabel required>
+                      Upload Certificate of Origin
+                    </FieldLabel>
+                    <UploadZone
+                      fileName={
+                        values.certificateOfOrigin
+                          ? (values.certificateOfOrigin as File).name
+                          : undefined
+                      }
+                      icon={<Shield className="w-4 h-4 text-white" />}
+                      label="Click to upload your Certificate of Origin"
+                      hint="PDF, JPG or PNG — max 5MB"
+                      onChange={(file) =>
+                        setFieldValue("certificateOfOrigin", file)
+                      }
                     />
+                    <FieldError name="certificateOfOrigin" />
                   </div>
                 </div>
               </div>
@@ -1093,13 +823,13 @@ export const RegistrationForm = ({
                   type="submit"
                   size="lg"
                   disabled={isPending}
-                  className="bg-[#ec7913] hover:bg-[#ec7913]/90 text-[#ffffff] hover:cursor-pointer px-8 py-3 text-base font-semibold"
+                  className="bg-[#ec7913] hover:bg-[#ec7913]/90 text-white px-8 py-3 text-base font-semibold"
                 >
                   {isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Submitting...
-                    </>
+                    </span>
                   ) : (
                     "Submit Registration"
                   )}

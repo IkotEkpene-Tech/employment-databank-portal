@@ -16,111 +16,40 @@ export const ValidationErrorModal = ({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.4)",
-        backdropFilter: "blur(2px)",
-        zIndex: 9998,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-9998 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        style={{
-          background: "#fff",
-          borderRadius: "16px",
-          padding: "28px 24px 24px",
-          maxWidth: "420px",
-          width: "100%",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
-          position: "relative",
-        }}
+        className="bg-white rounded-2xl p-7 max-w-105 w-full shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "14px",
-            right: "14px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "#9cb8a8",
-            padding: "4px",
-            borderRadius: "6px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className="absolute top-3.5 right-3.5 text-[#9cb8a8] hover:text-[#5c7a69] p-1 rounded-md flex items-center justify-center transition-colors"
         >
-          <X style={{ width: "18px", height: "18px" }} />
+          <X className="w-4.5 h-4.5" />
         </button>
 
         {/* Icon */}
-        <div
-          style={{
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            background: "rgba(239,67,67,0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "16px",
-          }}
-        >
-          <AlertCircle
-            style={{ width: "26px", height: "26px", color: "#ef4343" }}
-          />
+        <div className="w-12 h-12 rounded-full bg-[#ef4343]/10 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6 text-[#ef4343]" />
         </div>
 
         {/* Title */}
-        <h3
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "18px",
-            fontWeight: 700,
-            color: "#1a3d2b",
-            margin: "0 0 8px",
-          }}
-        >
+        <h3 className="font-['Playfair_Display'] text-lg font-bold text-[#1a3d2b] mb-2">
           Something went wrong
         </h3>
 
         {/* Message */}
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "14px",
-            color: "#5c7166",
-            margin: "0 0 20px",
-            lineHeight: 1.6,
-          }}
-        >
+        <p className="font-['DM_Sans'] text-sm text-[#5c7166] leading-relaxed mb-5">
           {message}
         </p>
 
-        {/* Close button */}
+        {/* Dismiss button */}
         <button
           onClick={onClose}
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#ef4343",
-            color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
+          className="w-full py-2.5 bg-[#ef4343] hover:bg-[#dc2626] text-white rounded-xl font-['DM_Sans'] text-sm font-semibold cursor-pointer transition-colors"
         >
           Dismiss
         </button>
