@@ -31,12 +31,12 @@ export const checkApplicant = async (
 ) => {
   try {
     const response = await axios.post(
-    "/applicants/retrieve-applicant",
-    { phoneNumber },
-    {
-      params: { isFetchFull },
-    },
-  );
+      "/applicants/retrieve-applicant",
+      { phoneNumber },
+      {
+        params: { isFetchFull },
+      },
+    );
     return response.data;
   } catch (error: any) {
     const message =
@@ -50,14 +50,37 @@ export const initializePayment = async (phoneNumber: string | any) => {
   return response.data;
 };
 
-
 export const verifyApplicantNin = async (
-phoneNumber:string,
-accessCode:string,
-nin:string,
+  phoneNumber: string,
+  accessCode: string,
+  nin: string,
 ) => {
   try {
-    const response = await axios.post("/applicants/verify-nin", { phoneNumber, accessCode, nin });
+    const response = await axios.post("/applicants/verify-nin", {
+      phoneNumber,
+      accessCode,
+      nin,
+    });
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(message);
+  }
+};
+
+export const saveApplicantNinData = async (body: {
+  firstname: string;
+  surname: string;
+  middlename: string;
+  phoneNumber: string;
+  birthdate: any;
+  photo: string;
+  nin: string;
+  accessCode: string;
+}) => {
+  try {
+    const response = await axios.post("/applicants/save-nin-details", body);
     return response.data;
   } catch (error: any) {
     const message =

@@ -4,6 +4,7 @@ import {
   checkApplicant,
   getAllWardsAndVillages,
   initializePayment,
+  saveApplicantNinData,
   submitApplications,
   verifyApplicantNin,
 } from "./api";
@@ -73,11 +74,35 @@ export function useVerifyApplicantNin() {
     }) => verifyApplicantNin(phoneNumber, accessCode, nin),
     onSuccess: async () => {
       queryClient.invalidateQueries({
-        queryKey: ["veiryApplicantNin"],
+        queryKey: ["verifyApplicantNin"],
       });
     },
     onError: (error) => {
       console.error("Error verifying applicant NIN:", error.message);
+    },
+  });
+}
+
+export function useSaveApplicantNinData() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      firstname: string;
+      surname: string;
+      middlename: string;
+      phoneNumber: string;
+      birthdate: any;
+      photo: string;
+      nin: string;
+      accessCode: string;
+    }) => saveApplicantNinData(body),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({
+        queryKey: ["saveApplicantNinData"],
+      });
+    },
+    onError: (error) => {
+      console.error("Error saving applicant NIN data:", error.message);
     },
   });
 }

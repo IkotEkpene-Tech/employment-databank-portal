@@ -3,11 +3,17 @@
 import { formatPhoneNumber } from "@/utilities/utils";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const phoneRegex = /^0[0-9]{10}$/;
 
 // Pages that don't need the phone guard
-const EXCLUDED_PATHS = ["/", "/payment-failed", "/coming-soon"];
+const EXCLUDED_PATHS = [
+  "/",
+  "/payment-failed",
+  "/coming-soon",
+  "/registration",
+];
 
 const PhoneGuard = ({ children }: { children: React.ReactNode }) => {
   const searchParams = useSearchParams();
@@ -23,6 +29,9 @@ const PhoneGuard = ({ children }: { children: React.ReactNode }) => {
     const formatted = decoded ? formatPhoneNumber(decoded) : null;
 
     if (!formatted || !phoneRegex.test(formatted)) {
+      toast.error(
+        "A valid phone number is required to access this page. Please try again",
+      );
       router.replace("/");
     }
   }, [pathname, searchParams]);

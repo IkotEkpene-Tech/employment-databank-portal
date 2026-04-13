@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -11,24 +12,24 @@ import {
 } from "lucide-react";
 import { StatusModal } from "./StatusModal";
 import { NinDetailsModal } from "./NinDetailsModal";
+import { Button } from "./Button";
 
 interface NinRecord {
-  firstName: string;
+  firstname: string;
   surname: string;
-  otherName?: string;
-  dob: string;
+  middlename?: string;
+  birthdate: string;
   gender: string;
   phone: string;
-  stateOfOrigin: string;
   nin?: string;
-  imageUrl?: string;
+  photo?: string;
 }
 
 interface NinInputProps {
   onChange: (nin: string, isValid: boolean, record?: NinRecord) => void;
   initialNin?: string;
   isVerifying?: boolean;
-  ninRecord?: NinRecord | null;
+  ninRecord?: NinRecord | null | any;
   verificationError?: string;
   onVerify?: () => void;
 }
@@ -157,13 +158,13 @@ export const NinInput = ({
               }`}
             />
             {nin.length > 0 && !isVerifying && (
-              <button
+              <Button
                 onClick={handleClearNin}
                 className="absolute right-3 cursor-pointer top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-colors bg-[#e8f0ec] text-[#6b8a78] hover:bg-[#dce8e2]"
                 tabIndex={-1}
               >
                 <X className="w-3 h-3" />
-              </button>
+              </Button>
             )}
             {isVerifying && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -202,7 +203,7 @@ export const NinInput = ({
           </div>
         )}
 
-        <button
+        <Button
           onClick={onVerify}
           disabled={!isNinReady || isVerifying || isValid}
           className="w-full mt-3 py-2.5 cursor-pointer rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all font-['DM_Sans'] disabled:cursor-not-allowed"
@@ -228,7 +229,7 @@ export const NinInput = ({
               Verify NIN
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       <NinDetailsModal

@@ -60,16 +60,10 @@ const HomePage = () => {
         { phoneNumber },
         {
           onSuccess: (data) => {
-            console.log("Phone number exists:", data);
-            // if (data) {
-            //   // Phone number exists - proceed to NIN verification
-            //   router.push(`/verify-nin?phone=${encodeURIComponent(phoneNumber)}`);
-            // } else {
-            //   // Phone number doesn't exist - redirect to payment notification page
-            //   router.push(
-            //     `/payment-notification?phone=${encodeURIComponent(phoneNumber)}`,
-            //   );
-            // }
+            // console.log("Phone number exists:", data);
+            router.push(
+              `/nin-check?phone=${encodeURIComponent(phoneNumber || "")}`,
+            );
           },
           onError: (error: any) => {
             if (error.message === "Applicant not found") {

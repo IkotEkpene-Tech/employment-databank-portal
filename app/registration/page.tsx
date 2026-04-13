@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { PageLoader } from "@/components/PageLoader";
 import { useGetAllDatabaseWards } from "@/services/tanstack";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Define the NinRecord type (should match the one in NinVerification component)
 export interface NinRecord {
@@ -20,35 +21,47 @@ export interface NinRecord {
   stateOfOrigin: string;
 }
 
-const Index = () => {
+const RegistrationPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [isNinVerified, setIsNinVerified] = useState(false);
   const [verifiedNin, setVerifiedNin] = useState<string | null>(null);
   const [ninData, setNinData] = useState<NinRecord | null>(null);
   const { isPending: isDataFetching } = useGetAllDatabaseWards();
+  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    setShowModal(true);
+  const router = useRouter();
+
+
+    useEffect(() => {
+    const nin = searchParams.get("nin");
+    const code = searchParams.get("code");
+    const raw = sessionStorage.getItem("nin_verification_data");
+
+    if (!nin || !code) {
+      router.push("/nin-check");
+      return;
+    }
+
+    if (!raw) {
+      router.push("/nin-check");
+      return;
+    }
+
+    try {
+      const record = JSON.parse(raw) as NinRecord;
+      setVerifiedNin(nin);
+      setNinData(record);
+      setIsNinVerified(true);
+    } catch {
+      router.push("/nin-check");
+    } finally {
+      // Clear immediately after reading — don't leave PII in storage
+      sessionStorage.removeItem("nin_verification_data");
+    }
   }, []);
+  
 
-  const handleNinVerified = (nin: string, record: NinRecord) => {
-    setVerifiedNin(nin);
-    setIsNinVerified(true);
-    setNinData(record);
-    setTimeout(() => {
-      const formElement = document.getElementById("registration-form");
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-  };
 
-  /**
-   * Called when the user clicks "Change NIN" inside RegistrationForm.
-   * Returns to the NIN verification step and wipes any partially entered form data
-   * (the form is unmounted, so Formik state is destroyed automatically).
-   */
   const handleChangeNin = () => {
     setIsNinVerified(false);
     setVerifiedNin(null);
@@ -97,4 +110,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default RegistrationPage;

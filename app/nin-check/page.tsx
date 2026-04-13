@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,11 @@ import { AccessCodeInput } from "@/components/AccessCodeInput";
 import { AlertCircle, ShieldCheck } from "lucide-react";
 import { NinInput } from "@/components/NinVerification";
 import { formatPhoneNumber } from "@/utilities/utils";
-import { useVerifyApplicantNin } from "@/services/tanstack";
+import {
+  useSaveApplicantNinData,
+  useVerifyApplicantNin,
+} from "@/services/tanstack";
+import { Button } from "@/components/Button";
 
 interface NinRecord {
   firstName: string;
@@ -26,11 +31,13 @@ const VerifyAccessPage = () => {
   const [nin, setNin] = useState("");
   const [isCodeComplete, setIsCodeComplete] = useState(false);
   const [isNinConfirmed, setIsNinConfirmed] = useState(false);
-  const [ninRecord, setNinRecord] = useState<NinRecord | null>(null);
+  const [ninRecord, setNinRecord] = useState<NinRecord | null | any>(null);
   const [verificationError, setVerificationError] = useState("");
   const phoneNumber = searchParams.get("phone") ?? "";
 
   const { mutate: verifyNin, isPending } = useVerifyApplicantNin();
+
+  const { mutateAsync: saveNinData, isPending: isSavingNinData } = useSaveApplicantNinData();
 
   const handleCodeChange = (code: string, isValid: boolean) => {
     setAccessCode(code);
@@ -39,12 +46,11 @@ const VerifyAccessPage = () => {
   };
 
   const handleNinChange = (
-    ninNumber: string,
+    nin: string,
     isValid: boolean,
-    record?: NinRecord,
+    record?: NinRecord | any,
   ) => {
-        console.log("hey", ninNumber);
-    setNin(ninNumber);
+    setNin(nin);
     if (isValid && record) {
       setNinRecord(record);
       setIsNinConfirmed(true);
@@ -63,14 +69,12 @@ const VerifyAccessPage = () => {
 
     setVerificationError("");
 
-     console.log("hey", nin);
-
     verifyNin(
       { phoneNumber: formatPhoneNumber(phoneNumber), accessCode, nin },
       {
         onSuccess: (data) => {
-          console.log("dat", data);
-          setNinRecord(data?.applicant ?? data);
+          setNinRecord(data?.data);
+          // console.log("NIN verification successful:", data);
         },
         onError: (error) => {
           setVerificationError(
@@ -82,7 +86,43 @@ const VerifyAccessPage = () => {
   };
 
   const handleProceed = () => {
-    router.push(`/registration?nin=${nin}&code=${accessCode}`);
+    saveNinData(
+      {
+        firstname: ninRecord?.firstname,
+        surname: ninRecord?.surname,
+        middlename: ninRecord?.middlename || "",
+        phoneNumber: formatPhoneNumber(phoneNumber),
+        birthdate: ninRecord?.birthdate,
+        photo: ninRecord?.photo,
+        nin: ninRecord?.nin,
+        accessCode,
+      },
+      {
+        onSuccess: () => {
+          if (ninRecord) {
+            sessionStorage.setItem(
+              "nin_verification_data",
+              JSON.stringify({
+                firstName: ninRecord.firstName,
+                surname: ninRecord.surname,
+                otherName: ninRecord.otherName,
+                dob: ninRecord.dob,
+                gender: ninRecord.gender,
+                phone: ninRecord.phone,
+                stateOfOrigin: ninRecord.stateOfOrigin,
+              }),
+            );
+          }
+          router.push(`/registration?nin=${nin}&code=${accessCode}`);
+        },
+        onError: (error) => {
+          console.error("Error saving NIN data:", error);
+          setVerificationError(
+            error.message || "Nin verification failed. Please try again.",
+          );
+        },
+      },
+    );
   };
 
   return (
@@ -133,7 +173,7 @@ const VerifyAccessPage = () => {
 
               <NinInput
                 onChange={handleNinChange}
-                isVerifying={isPending}
+                isVerifying={isPending || isSavingNinData}
                 ninRecord={ninRecord}
                 verificationError={verificationError}
                 onVerify={handleVerifyNin}
@@ -147,14 +187,15 @@ const VerifyAccessPage = () => {
               )}
 
               {isNinConfirmed && (
-                <button
+                <Button
                   onClick={handleProceed}
                   className="w-full py-3.5 cursor-pointer rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors font-['DM_Sans']"
                   style={{ background: "#ec7913", color: "#fff" }}
+                  disabled={isPending || isSavingNinData}
                 >
                   <ShieldCheck className="w-4 h-4" />
                   Continue to Registration
-                </button>
+                </Button>
               )}
 
               <div className="flex gap-2.5 rounded-xl p-3 bg-[#f0f8f4] border border-[#c8e4d4]">
