@@ -6,6 +6,7 @@ import Providers from "@/components/Providers";
 import { RegistrationHeader } from "@/components/RegistrationHeader";
 import { PageLoaderProvider } from "@/contexts/useLoader";
 import PhoneGuard from "@/hooks/PhoneGuard";
+import { ComplaintWidget } from "@/components/ComplaintWidget";
 
 export const metadata: Metadata = {
   title: "Ikot Ekpene Local Government Indigene Employment Databank Registration Portal",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <RegistrationHeader />
                 {children}
               </PhoneGuard>
+               <ComplaintWidget />
             </Suspense>
           </PageLoaderProvider>
         </Providers>

@@ -3,7 +3,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Phone, ArrowRight, Loader2 } from "lucide-react";
+import { Phone, ArrowRight, Loader2, ClipboardList } from "lucide-react";
 import { RegistrationHeader } from "@/components/RegistrationHeader";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/Button";
@@ -79,7 +79,7 @@ const HomePage = () => {
         },
       );
     } catch (err: any) {
-      setError("Something went wrong. Please try again.");
+      // setError("Something went wrong. Please try again.");
     } finally {
       hideLoader();
     }
@@ -107,6 +107,14 @@ const HomePage = () => {
 
           <div className="px-7 py-8">
             <form onSubmit={handleSubmit}>
+              <div className="font-['DM_Sans'] font-bold text-sm text-[#00572f] mt-1.5">
+                 Your phone number will be tied to your NIN and your access code
+                through out this process. If you change your phone number, you
+                may lose access to your registration and any updates regarding
+                job opportunities. Please make sure to use a phone number that
+                you will have access to for the foreseeable future.
+              </div>
+              <br />
               <label
                 htmlFor="phone"
                 className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-2"
@@ -137,8 +145,8 @@ const HomePage = () => {
                   {error}
                 </div>
               )}
-              <div className="font-['DM_Sans'] font-bold text-xs text-[#8aab98] mt-1.5">
-                Enter the 11-digit phone number associated with your NIN
+              <div className="font-['DM_Sans'] font-bold text-xs text-[#00572f] mt-1.5">
+                Enter the 11-digit phone number associated with your NIN <br />
               </div>
 
               <Button
@@ -160,6 +168,23 @@ const HomePage = () => {
                 )}
               </Button>
             </form>
+            <Button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="w-full mt-5 rounded-2xl border border-[#f3c79d] bg-linear-to-r from-[#fff7ef] via-[#fff3e5] to-[#ffe9d1] px-5 py-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <div className="flex items-center justify-center gap-6 w-full">
+                <div className="text-left">
+                  <p className="text-sm font-bold text-[#7a3f08] mt-0.5">
+                    View Requirements
+                  </p>
+                </div>
+
+                <div className="w-8 h-8 rounded-full bg-[#ec7913] flex items-center justify-center shrink-0 shadow-md">
+                  <ClipboardList className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            </Button>
           </div>
         </div>
       </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPhoneNumber } from "@/utilities/utils";
+import { formatPhoneNumber, handleClearStorage } from "@/utilities/utils";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
@@ -13,6 +13,9 @@ const EXCLUDED_PATHS = [
   "/payment-failed",
   "/coming-soon",
   "/registration",
+  "/payment-success",
+  "/coming-soon",
+  "/success-screen",
 ];
 
 const PhoneGuard = ({ children }: { children: React.ReactNode }) => {
@@ -32,6 +35,7 @@ const PhoneGuard = ({ children }: { children: React.ReactNode }) => {
       toast.error(
         "A valid phone number is required to access this page. Please try again",
       );
+      handleClearStorage();
       router.replace("/");
     }
   }, [pathname, searchParams]);
