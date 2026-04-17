@@ -1,9 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
@@ -15,6 +14,7 @@ import {
   Loader2,
   RefreshCw,
   CreditCard,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "./Button";
 import {
@@ -26,9 +26,8 @@ import {
   useGetAllDatabaseWards,
   useSubmitApplications,
 } from "@/services/tanstack";
-import { useAlert } from "next-alert";
 import { SubmitLoader } from "./SubmitLoader";
-import { ValidationErrorModal } from "./ValidationErrorModal";
+import { UtilityModal } from "./UtilityModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +39,7 @@ interface NinRecord {
   gender: string;
   phone: string;
   stateOfOrigin: string;
+  accessCode: string;
 }
 
 interface RegistrationFormProps {
@@ -71,12 +71,6 @@ const validationSchema = Yup.object({
   firstName: Yup.string().required("First name is required"),
   otherName: Yup.string(),
   gender: Yup.string().required("Please select your gender"),
-  phoneNumber: Yup.string()
-    .matches(
-      /^0[0-9]{10}$/,
-      "Enter a valid 11-digit phone number starting with 0",
-    )
-    .required("Phone number is required"),
   email: Yup.string()
     .required("Email is required")
     .email("Enter a valid email address"),
@@ -250,6 +244,26 @@ const UploadZone = ({
   </label>
 );
 
+// ─── Helper function to format errors ─────────────────────────────────────────
+
+const formatValidationErrors = (errors: Record<string, any>): string[] => {
+  const errorMessages: string[] = [];
+
+  const extractErrors = (obj: Record<string, any>, prefix = "") => {
+    for (const key in obj) {
+      const value = obj[key];
+      if (typeof value === "string") {
+        errorMessages.push(value);
+      } else if (typeof value === "object" && value !== null) {
+        extractErrors(value, key);
+      }
+    }
+  };
+
+  extractErrors(errors);
+  return errorMessages;
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const RegistrationForm = ({
@@ -260,7 +274,6 @@ export const RegistrationForm = ({
 }: RegistrationFormProps) => {
   const { data: allWards } = useGetAllDatabaseWards();
   const { mutate: submitApplication, isPending } = useSubmitApplications();
-  const { addAlert } = useAlert();
   const wards = allWards?.data || [];
 
   useEffect(() => {
@@ -269,26 +282,27 @@ export const RegistrationForm = ({
 
   const [errorModal, setErrorModal] = useState<{
     open: boolean;
-    message: string;
+    errors: string[];
   }>({
     open: false,
-    message: "",
+    errors: [],
   });
 
-  const showError = (message: string) => setErrorModal({ open: true, message });
-  const closeError = () => setErrorModal({ open: false, message: "" });
+  const showErrorModal = (errors: string[]) =>
+    setErrorModal({ open: true, errors });
+
+  const closeErrorModal = () => setErrorModal({ open: false, errors: [] });
 
   const initialValues = {
     surname: ninData?.surname ?? "",
     firstName: ninData?.firstName ?? "",
     otherName: ninData?.otherName ?? "",
     gender:
-      ninData?.gender?.toLowerCase() === "female"
+      ninData?.gender?.toLowerCase() === "f"
         ? "female"
-        : ninData?.gender?.toLowerCase() === "male"
+        : ninData?.gender?.toLowerCase() === "m"
           ? "male"
           : "",
-    phoneNumber: "",
     email: "",
     vin: "",
     ward: "",
@@ -307,21 +321,15 @@ export const RegistrationForm = ({
     certificateOfOrigin: null as File | null,
   };
 
-  const getFirstError = (errors: Record<string, any>): string => {
-    const first = Object.values(errors)[0];
-    if (typeof first === "string") return first;
-    if (typeof first === "object" && first !== null)
-      return getFirstError(first);
-    return "Please fill in all required fields before submitting.";
-  };
-
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting, validateForm }: any,
+    { setSubmitting }: any,
   ) => {
-    const errors = await validateForm(values);
-    if (Object.keys(errors).length > 0) {
-      showError(getFirstError(errors));
+    try {
+      await validationSchema.validate(values, { abortEarly: false });
+    } catch (err: any) {
+      const errorList = err.inner?.map((e: any) => e.message) ?? [err.message];
+      showErrorModal(errorList);
       setSubmitting(false);
       return;
     }
@@ -329,6 +337,8 @@ export const RegistrationForm = ({
     const formData = new FormData();
     formData.append("nin", nin);
     formData.append("dateOfBirth", ninData.dob);
+    formData.append("phoneNumber", ninData.phone);
+    formData.append("accessCode", ninData.accessCode);
 
     Object.entries(values).forEach(([key, value]) => {
       if (key === "certificate" || key === "certificateOfOrigin") {
@@ -341,28 +351,45 @@ export const RegistrationForm = ({
     submitApplication(formData, {
       onSuccess: () => onSuccess(),
       onError: (error: any) => {
-        showError(
+        showErrorModal([
           error?.message ?? "An unexpected error occurred. Please try again.",
-        );
+        ]);
       },
     });
   };
 
-  const maskNin = (n: string) => `●●●●●●●${n.slice(-4)}`;
+  const maskNin = (n: string) => (n ? `●●●●●●●${n.slice(-4)}` : "");
 
   return (
     <>
       {isPending && <SubmitLoader />}
 
-      <ValidationErrorModal
+      <UtilityModal
         open={errorModal.open}
-        message={errorModal.message}
-        onClose={closeError}
-      />
+        onClose={closeErrorModal}
+        title="Validation Error"
+        subtitle={`Please fix the following ${errorModal.errors.length} error(s) before continuing`}
+        type="error"
+        showOneButton
+        proceedText="OK, Got it"
+        onProceed={closeErrorModal}
+      >
+        <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+          {errorModal.errors.map((error, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-2 p-2 rounded-lg bg-red-50 border border-red-100"
+            >
+              <AlertCircle className="w-4 h-4 text-[#ef4343] shrink-0 mt-0.5" />
+              <p className="text-sm text-[#c0392b] font-['DM_Sans']">{error}</p>
+            </div>
+          ))}
+        </div>
+      </UtilityModal>
 
       <Formik
         initialValues={initialValues}
-        validationSchema={validationSchema}
+        // validationSchema={validationSchema}
         onSubmit={handleSubmit}
         enableReinitialize
       >
@@ -375,42 +402,43 @@ export const RegistrationForm = ({
           return (
             <Form className="space-y-5">
               {/* ── NIN Banner ─────────────────────────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<CreditCard className="w-4 h-4 text-white" />}
                   title="Verified Identity"
                   subtitle="Your NIN has been confirmed for this session"
                 />
-                <div className="px-6 py-5">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3 flex-1 min-w-0 bg-[#f0f8f4] border border-[#b8deca] rounded-xl px-4 py-3">
+                <div className="px-4 sm:px-6 py-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0 w-full bg-[#f0f8f4] border border-[#b8deca] rounded-xl px-4 py-3">
                       <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#00572f] to-[#007a44] flex items-center justify-center shrink-0">
                         <CreditCard className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="font-['DM_Sans'] text-xs text-[#6b8a78] mb-0.5">
                           NIN
                         </p>
-                        <p className="font-['DM_Sans'] text-sm font-bold text-[#00572f] tracking-wider tabular-nums">
+                        <p className="font-['DM_Sans'] text-sm font-bold text-[#00572f] tracking-wider tabular-nums truncate">
                           {maskNin(nin)}
                         </p>
                       </div>
                     </div>
-                    <button
+                    <Button
                       type="button"
                       onClick={onChangeNin}
                       disabled={isPending}
-                      className="flex items-center gap-1.5 px-4 py-2.5 border-[1.5px] border-[#d3ded9] rounded-lg bg-white text-[#5c7a69] font-['DM_Sans'] text-sm font-semibold hover:border-[#7db898] transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      variant="secondary"
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 border-[1.5px] border-[#d3ded9] rounded-lg bg-white text-[#00572f] font-['DM_Sans'] text-sm font-semibold hover:border-[#7db898] transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap w-full sm:w-auto"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Change NIN
-                    </button>
+                      <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                      <span>Change NIN</span>
+                    </Button>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* ── Personal Information ────────────────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<User className="w-4 h-4 text-white" />}
                   title="Personal Information"
@@ -478,17 +506,21 @@ export const RegistrationForm = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <FieldLabel required>Phone Number</FieldLabel>
-                      <Field
-                        name="phoneNumber"
+                      <label className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-1.5">
+                        Phone Number
+                        <span className="text-[#8aab98] font-normal text-[11px] ml-1">
+                          (from NIN — cannot be edited)
+                        </span>
+                      </label>
+                      <input
                         type="tel"
-                        placeholder="08012345678"
-                        className={inputClass}
+                        readOnly
+                        value={ninData?.phone}
+                        className="w-full text-[#1a3d2b] px-3.5 py-2.5 border-[1.5px] border-[#e0ebe4] rounded-xl bg-[#f3f8f5] font-['DM_Sans'] text-sm cursor-not-allowed"
                       />
-                      <FieldError name="phoneNumber" />
                     </div>
                     <div>
-                      <FieldLabel optional>Email Address</FieldLabel>
+                      <FieldLabel required>Email Address</FieldLabel>
                       <Field
                         name="email"
                         type="email"
@@ -516,10 +548,10 @@ export const RegistrationForm = ({
                     </p>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* ── Location Details ────────────────────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<MapPin className="w-4 h-4 text-white" />}
                   title="Where Are You From?"
@@ -571,10 +603,10 @@ export const RegistrationForm = ({
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* ── Education ───────────────────────────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<GraduationCap className="w-4 h-4 text-white" />}
                   title="Educational Qualification"
@@ -681,10 +713,10 @@ export const RegistrationForm = ({
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
 
               {/* ── Skills ──────────────────────────────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<Wrench className="w-4 h-4 text-white" />}
                   title="Skill (What skills do you have?)"
@@ -755,10 +787,10 @@ export const RegistrationForm = ({
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
 
               {/* ── Village Authority Verification ──────────────────────────── */}
-              <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-[#e4ede8] shadow-sm overflow-hidden">
                 <CardHeader
                   icon={<Shield className="w-4 h-4 text-white" />}
                   title="Village Authority Verification"
@@ -815,10 +847,10 @@ export const RegistrationForm = ({
                     <FieldError name="certificateOfOrigin" />
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* ── Submit ──────────────────────────────────────────────────── */}
-              <div className="flex justify-end pt-4">
+              <section className="flex justify-end pt-4">
                 <Button
                   type="submit"
                   size="lg"
@@ -834,7 +866,7 @@ export const RegistrationForm = ({
                     "Submit Registration"
                   )}
                 </Button>
-              </div>
+              </section>
             </Form>
           );
         }}

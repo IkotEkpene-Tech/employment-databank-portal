@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "./Button";
+import { formatPhoneNumber } from "@/utilities/utils";
 
 interface NinRecord {
   firstname: string;
@@ -74,13 +75,13 @@ export const NinDetailsModal = ({
         // onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
-        <Button
+        <button
           onClick={onClose}
           className="absolute top-3 cursor-pointer right-3 z-20 w-8 h-8 rounded-full bg-white/90 text-gray-600 flex items-center justify-center shadow-md hover:bg-white hover:text-gray-900 transition-all duration-150"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
-        </Button>
+        </button>
 
         {/* Header */}
         <div className="bg-linear-to-br from-[#f5f9f6] to-[#edf4ef] border-b border-[#e0ebe4] px-6 py-5 text-center">
@@ -145,7 +146,7 @@ export const NinDetailsModal = ({
                 </p>
               </div>
               <p className="text-sm font-semibold text-[#1a3d2b]">
-                {ninData.phone}
+                {formatPhoneNumber(ninData.phone)}
               </p>
             </div>
 

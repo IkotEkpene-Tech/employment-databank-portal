@@ -3,9 +3,23 @@
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
+import { handleClearStorage } from "@/utilities/utils";
+import { usePageLoader } from "@/contexts/useLoader";
 
 export const SuccessScreen = () => {
   const router = useRouter();
+
+  const { showLoader } = usePageLoader();
+
+  const handleGoHome = () => {
+    showLoader(
+      "Redirecting to home page...",
+      "Please wait while we take you back to the home page.",
+      true,
+    );
+    handleClearStorage();
+    router.replace("/");
+  };
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
       <div className="bg-white rounded-2xl border border-[#e4ede8] shadow-lg max-w-md w-full overflow-hidden text-center">
@@ -45,9 +59,10 @@ export const SuccessScreen = () => {
             </p>
             <ul className="space-y-2">
               {[
+                "You will receive a confirmation email in your email address, please save the email for future reference.",
                 "Our team will check and save your information.",
                 "Your village head may be contacted to confirm you are from Ikot Ekpene LGA.",
-                "We will call you when a job or programme is available for you.",
+                "When a job, training, or support programme is available that matches your profile, we will contact you to inform you about it and how to login to the portal to apply.",
               ].map((text, i) => (
                 <li
                   key={i}
@@ -63,7 +78,7 @@ export const SuccessScreen = () => {
           </div>
 
           <Button
-            onClick={() => router.replace("/")}
+            onClick={handleGoHome}
             variant="outline"
             className="gap-2 border-[#d3ded9] text-[#5c7a69] hover:border-[#00572f] hover:text-[#00572f]"
           >

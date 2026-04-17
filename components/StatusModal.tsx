@@ -4,6 +4,7 @@ import { Button } from "./Button";
 
 interface StatusModalProps {
   open: boolean;
+  clickOutsideToClose?: boolean;
   onClose: () => void;
   title: string;
   message: string;
@@ -16,6 +17,7 @@ export const StatusModal = ({
   title,
   message,
   type,
+  clickOutsideToClose = true,
 }: StatusModalProps) => {
   if (!open) return null;
 
@@ -43,20 +45,20 @@ export const StatusModal = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={clickOutsideToClose ? onClose : undefined}
     >
       <div
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
-        <Button
+        <button
           onClick={onClose}
           className="absolute top-3 cursor-pointer right-3 z-20 w-8 h-8 rounded-full bg-white/90 text-gray-600 flex items-center justify-center shadow-md hover:bg-white hover:text-gray-900 transition-all duration-150"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
-        </Button>
+        </button>
 
         {/* Header */}
         <div
