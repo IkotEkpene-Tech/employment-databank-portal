@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
-  CreditCard,
   Lock,
   Mail,
   Wallet,
@@ -18,14 +17,13 @@ import { StatusModal } from "@/components/StatusModal";
 const isValidEmail = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
-const PaymentNotificationPage = () => {
+const NewCodePaymentNotificationPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneNumber = searchParams.get("phone");
 
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
-
   const [errorModal, setErrorModal] = useState<{
     open: boolean;
     error: string;
@@ -37,7 +35,6 @@ const PaymentNotificationPage = () => {
     setErrorModal({ open: true, error });
 
   const closeErrorModal = () => setErrorModal({ open: false, error: "" });
-
   const emailError =
     emailTouched && !email.trim()
       ? "Email address is required."
@@ -55,7 +52,7 @@ const PaymentNotificationPage = () => {
     if (!email.trim() || !isValidEmail(email)) return;
 
     await startPayment(
-      { phoneNumber, email: email.trim() },
+      { phoneNumber, email: email.trim(), isNotNew: true },
       {
         onSuccess: (data) => {
           console.log("Payment initialized successfully:", data);
@@ -77,33 +74,16 @@ const PaymentNotificationPage = () => {
     <div className="min-h-screen flex flex-col bg-[#fafafa]">
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="max-w-lg w-full bg-white rounded-2xl border border-[#e4ede8] shadow-lg overflow-hidden">
-          {/* Alert Banner */}
-          <div className="bg-linear-to-r from-[#fff5e6] to-[#ffe8d4] border-b border-[#ffdfb8] px-6 py-5 flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#ec7913] rounded-full flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="font-['DM_Sans'] text-sm font-bold text-[#a65300] mb-0.5">
-                Phone Number Not Registered
-              </p>
-              <p className="font-['DM_Sans'] text-xs text-[#b35f00]">
-                {phoneNumber
-                  ? `The number ${phoneNumber} was not found in our records.`
-                  : "Your phone number is not registered in our system."}
-              </p>
-            </div>
-          </div>
-
           {/* Header */}
           <div className="bg-linear-to-br from-[#f5f9f6] to-[#edf4ef] border-b border-[#e0ebe4] px-6 py-7 text-center">
             <div className="w-18 h-18 bg-linear-to-br from-[#00572f] to-[#007a44] rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
               <Wallet className="w-8 h-8 text-white" />
             </div>
             <h1 className="font-['Playfair_Display'] text-2xl font-bold text-[#00572f] mb-2">
-              Registration Fee Required
+              New Access Code Required
             </h1>
             <p className="font-['DM_Sans'] text-sm text-[#6b8a78]">
-              Complete your registration by paying the processing fee
+              Pay for a new access code to complete your registration
             </p>
           </div>
 
@@ -112,24 +92,11 @@ const PaymentNotificationPage = () => {
             {/* Amount Box */}
             <div className="bg-linear-to-br from-[#f0f8f4] to-[#e8f3ec] rounded-xl p-5 text-center mb-7 border border-[#cde2d4]">
               <div className="font-['DM_Sans'] text-xs font-semibold text-[#5c7a69] uppercase tracking-wide mb-2">
-                Registration Fee
+                Fee
               </div>
               <div className="font-['Playfair_Display'] text-5xl font-bold text-[#00572f] leading-none">
                 <span className="text-3xl align-top">₦</span>500
               </div>
-            </div>
-
-            {/* What you get section */}
-            <div className="mb-6">
-              <div className="font-['DM_Sans'] text-sm font-bold text-[#1a3d2b] mb-3 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#00572f]" />
-                What you get:
-              </div>
-              <ul className="font-['DM_Sans'] text-sm text-[#4a6741] space-y-1.5 pl-5 list-disc">
-                <li>Access to complete registration form</li>
-                <li>Submission of your application</li>
-                <li>Processing and verification of your details</li>
-              </ul>
             </div>
 
             <div className="h-px bg-linear-to-r from-transparent via-[#e0ebe4] to-transparent my-5" />
@@ -250,4 +217,4 @@ const PaymentNotificationPage = () => {
   );
 };
 
-export default PaymentNotificationPage;
+export default NewCodePaymentNotificationPage;

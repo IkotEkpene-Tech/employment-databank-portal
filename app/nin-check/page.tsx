@@ -38,6 +38,7 @@ const VerifyAccessPage = () => {
   const [verificationError, setVerificationError] = useState("");
   const phoneNumber = searchParams.get("phone") ?? "";
   const [isValid, setIsValid] = useState(false);
+  const [isRedirectingToPayment, setIsRedirectingToPayment] = useState(false);
   const { showLoader } = usePageLoader();
 
   const { mutate: verifyNin, isPending } = useVerifyApplicantNin();
@@ -81,7 +82,7 @@ const VerifyAccessPage = () => {
         onSuccess: (data) => {
           setNinRecord(data?.data);
           setIsValid(true);
-          // console.log("NIN verification successful:", data);
+          console.log("NIN verification successful:", data);
         },
         onError: (error) => {
           setVerificationError(
@@ -93,18 +94,26 @@ const VerifyAccessPage = () => {
   };
 
   const handlePayForNewCode = () => {
+    setIsRedirectingToPayment(true);
     if (!formatPhoneNumber(phoneNumber)) {
+      showLoader(
+        "Redirecting",
+        "Invalid phone number. Please start the process again.",
+        true,
+      );
       router.push(`/`);
       return toast.error(
         "Invalid phone number. Please start the process again.",
       );
     }
+    showLoader("Redirecting to Payment", "Setting up payment flow", true);
     router.push(
-      `/payment-notification?phone=${encodeURIComponent(phoneNumber)}`,
+      `/new-code-payment-notification?phone=${encodeURIComponent(phoneNumber)}`,
     );
   };
 
   const handleProceed = () => {
+    console.log("nin-checking", ninRecord);
     saveNinData(
       {
         firstname: ninRecord?.firstname,
@@ -112,8 +121,9 @@ const VerifyAccessPage = () => {
         middlename: ninRecord?.middlename || "",
         phoneNumber: formatPhoneNumber(phoneNumber),
         birthdate: ninRecord?.birthdate,
-        photo: ninRecord?.photo,
+        // photo: ninRecord?.photo,
         nin: ninRecord?.nin,
+        email: ninRecord.email,
         accessCode,
       },
       {
@@ -127,12 +137,14 @@ const VerifyAccessPage = () => {
                 otherName: ninRecord.middlename,
                 dob: ninRecord.birthdate,
                 gender: ninRecord.gender,
-                photo: ninRecord?.photo,
+                // photo: ninRecord?.photo,
                 phone: formatPhoneNumber(phoneNumber),
+                email: ninRecord.email,
                 accessCode,
               }),
             );
           }
+          console.log("nin-record", ninRecord);
           showLoader(
             "Redirecting...",
             "Please wait while we prepare your registration.",
@@ -142,7 +154,7 @@ const VerifyAccessPage = () => {
             router.push(
               `/registration?nin=${nin}&code=${accessCode}&phone=${formatPhoneNumber(phoneNumber)}`,
             );
-          }, 1000);
+          }, 4000);
         },
         onError: (error) => {
           console.error("Error saving NIN data:", error);
@@ -224,7 +236,12 @@ const VerifyAccessPage = () => {
                 onClick={handlePayForNewCode}
                 className="w-full py-3.5 cursor-pointer rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors font-['DM_Sans']"
                 style={{ background: "#ec7913", color: "#fff" }}
-                disabled={isPending || isSavingNinData || isValid}
+                disabled={
+                  isPending ||
+                  isSavingNinData ||
+                  isValid ||
+                  isRedirectingToPayment
+                }
               >
                 <ShieldCheck className="w-4 h-4" />
                 Pay for New Access Code

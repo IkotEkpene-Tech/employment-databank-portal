@@ -38,6 +38,7 @@ interface NinRecord {
   dob: string;
   gender: string;
   phone: string;
+  email: string;
   stateOfOrigin: string;
   accessCode: string;
 }
@@ -303,7 +304,7 @@ export const RegistrationForm = ({
         : ninData?.gender?.toLowerCase() === "m"
           ? "male"
           : "",
-    email: "",
+    email: ninData.email ?? "",
     vin: "",
     ward: "",
     village: "",
@@ -339,6 +340,7 @@ export const RegistrationForm = ({
     formData.append("dateOfBirth", ninData.dob);
     formData.append("phoneNumber", ninData.phone);
     formData.append("accessCode", ninData.accessCode);
+    formData.append("email", ninData.email);
 
     Object.entries(values).forEach(([key, value]) => {
       if (key === "certificate" || key === "certificateOfOrigin") {
@@ -519,7 +521,7 @@ export const RegistrationForm = ({
                         className="w-full text-[#1a3d2b] px-3.5 py-2.5 border-[1.5px] border-[#e0ebe4] rounded-xl bg-[#f3f8f5] font-['DM_Sans'] text-sm cursor-not-allowed"
                       />
                     </div>
-                    <div>
+                    {/* <div>
                       <FieldLabel required>Email Address</FieldLabel>
                       <Field
                         name="email"
@@ -528,6 +530,20 @@ export const RegistrationForm = ({
                         className={inputClass}
                       />
                       <FieldError name="email" />
+                    </div> */}
+                    <div>
+                      <label className="block font-['DM_Sans'] text-sm font-semibold text-[#1a3d2b] mb-1.5">
+                        Email Address
+                        <span className="text-[#8aab98] font-normal text-[11px] ml-1">
+                          (Saved At verification - cannot be edited)
+                        </span>
+                      </label>
+                      <input
+                        type="email"
+                        readOnly
+                        value={ninData?.email}
+                        className="w-full text-[#1a3d2b] px-3.5 py-2.5 border-[1.5px] border-[#e0ebe4] rounded-xl bg-[#f3f8f5] font-['DM_Sans'] text-sm cursor-not-allowed"
+                      />
                     </div>
                   </div>
 
