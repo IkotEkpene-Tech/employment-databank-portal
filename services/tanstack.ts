@@ -56,7 +56,15 @@ export function useCheckApplicant() {
 
 export function useInitializePayment() {
   return useMutation({
-    mutationFn: initializePayment,
+    mutationFn: ({
+      phoneNumber,
+      email,
+      isNotNew,
+    }: {
+      phoneNumber: string | null;
+      email: string;
+      isNotNew?: boolean;
+    }) => initializePayment(phoneNumber, email, isNotNew),
   });
 }
 
@@ -92,7 +100,8 @@ export function useSaveApplicantNinData() {
       middlename: string;
       phoneNumber: string;
       birthdate: any;
-      photo: string;
+      email:string;
+      // photo: string;
       nin: string;
       accessCode: string;
     }) => saveApplicantNinData(body),

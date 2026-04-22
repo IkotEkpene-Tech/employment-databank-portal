@@ -60,7 +60,7 @@ export const NinDetailsModal = ({
   };
 
   const getInitials = () => {
-    return `${ninData.firstname[0]}${ninData.surname[0]}`.toUpperCase();
+    return `${ninData?.firstname[0]}${ninData?.surname[0]}`.toUpperCase();
   };
 
   const maskNin = (nin: string) => {

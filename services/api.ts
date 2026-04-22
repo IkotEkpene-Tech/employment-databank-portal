@@ -45,9 +45,23 @@ export const checkApplicant = async (
   }
 };
 
-export const initializePayment = async (phoneNumber: string | any) => {
-  const response = await axios.post("/payments/initialize", { phoneNumber });
+export const initializePayment = async (
+  phoneNumber: string | any,
+  email: string,
+  isNotNew?: boolean,
+) => {
+    try {
+  const response = await axios.post("/payments/initialize", {
+    phoneNumber,
+    email,
+    isNotNew,
+  });
   return response.data;
+}catch (error: any) {
+    const message =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(message);
+  }
 };
 
 export const verifyApplicantNin = async (
@@ -75,7 +89,7 @@ export const saveApplicantNinData = async (body: {
   middlename: string;
   phoneNumber: string;
   birthdate: any;
-  photo: string;
+  // photo: string;
   nin: string;
   accessCode: string;
 }) => {
