@@ -72,9 +72,9 @@ const validationSchema = Yup.object({
   firstName: Yup.string().required("First name is required"),
   otherName: Yup.string(),
   gender: Yup.string().required("Please select your gender"),
-  email: Yup.string()
-    .required("Email is required")
-    .email("Enter a valid email address"),
+  // email: Yup.string()
+  //   .required("Email is required")
+  //   .email("Enter a valid email address"),
   vin: Yup.string()
     .min(19, "VIN must be at least 19 characters")
     .required("Voter Identification Number (VIN) is required"),
@@ -340,7 +340,7 @@ export const RegistrationForm = ({
     formData.append("dateOfBirth", ninData.dob);
     formData.append("phoneNumber", ninData.phone);
     formData.append("accessCode", ninData.accessCode);
-    formData.append("email", ninData.email);
+    // formData.append("email", ninData.email);
 
     Object.entries(values).forEach(([key, value]) => {
       if (key === "certificate" || key === "certificateOfOrigin") {
@@ -349,7 +349,6 @@ export const RegistrationForm = ({
         formData.append(key, String(value));
       }
     });
-
     submitApplication(formData, {
       onSuccess: () => onSuccess(),
       onError: (error: any) => {

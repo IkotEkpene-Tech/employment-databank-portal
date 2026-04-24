@@ -39,6 +39,11 @@ const VerifyAccessPage = () => {
   const phoneNumber = searchParams.get("phone") ?? "";
   const [isValid, setIsValid] = useState(false);
   const [isRedirectingToPayment, setIsRedirectingToPayment] = useState(false);
+  const [codeUsage, setCodeUsage] = useState({
+    maxUsage: 0,
+    usageCount: 0,
+  });
+  const [isShowCodeCount, setIsShowCodeCount] = useState(false);
   const { showLoader } = usePageLoader();
 
   const { mutate: verifyNin, isPending } = useVerifyApplicantNin();
@@ -82,7 +87,12 @@ const VerifyAccessPage = () => {
         onSuccess: (data) => {
           setNinRecord(data?.data);
           setIsValid(true);
-          console.log("NIN verification successful:", data);
+          setIsShowCodeCount(true);
+          setCodeUsage({
+            maxUsage: data.data.maxUsage,
+            usageCount: data.data.usageCount,
+          });
+          // console.log("NIN verification successful:", data);
         },
         onError: (error) => {
           setVerificationError(
@@ -113,7 +123,6 @@ const VerifyAccessPage = () => {
   };
 
   const handleProceed = () => {
-    console.log("nin-checking", ninRecord);
     saveNinData(
       {
         firstname: ninRecord?.firstname,
@@ -144,7 +153,7 @@ const VerifyAccessPage = () => {
               }),
             );
           }
-          console.log("nin-record", ninRecord);
+          // console.log("nin-record", ninRecord);
           showLoader(
             "Redirecting...",
             "Please wait while we prepare your registration.",
@@ -224,6 +233,22 @@ const VerifyAccessPage = () => {
                 <div className="flex items-center gap-1.5 p-3 rounded-xl bg-red-50 border border-red-200">
                   <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4343]" />
                   <p className="text-xs text-[#ef4343]">{verificationError}</p>
+                </div>
+              )}
+
+              {isShowCodeCount && (
+                <div className="bg-[#fff5e6] rounded-xl p-4 border border-[#ffdfb8]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-['DM_Sans'] text-sm font-medium text-[#a65300]">
+                      Code Usage:
+                    </span>
+                    <div className="font-mono text-lg font-bold text-[#ec7913]">
+                      {codeUsage.usageCount} out of {codeUsage.maxUsage}
+                    </div>
+                  </div>
+                  <p className="font-['DM_Sans'] text-xs text-[#b35f00] mt-2">
+                    This shows how many times your access code has been used.
+                  </p>
                 </div>
               )}
 

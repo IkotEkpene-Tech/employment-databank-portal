@@ -36,6 +36,10 @@ const PaymentSuccessPage = () => {
   const [generatedCode, setGeneratedCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [codeExpiry, setCodeExpiry] = useState(null);
+  const [codeUsage, setCodeUsage] = useState({
+    maxUsage: 0,
+    usageCount: 0,
+  });
 
   useEffect(() => {
     if (codeFromUrl) {
@@ -59,6 +63,10 @@ const PaymentSuccessPage = () => {
           {
             onSuccess: (data) => {
               setCodeExpiry(getDaysUntilExpiry(data.data.expiresAt));
+              setCodeUsage({
+                maxUsage: data.data.maxUsage,
+                usageCount: data.data.usageCount,
+              });
             },
           },
         );
@@ -164,6 +172,17 @@ const PaymentSuccessPage = () => {
                     {codeExpiry} Days
                   </div>
                 </div>
+
+                {/* ✅ ADDED USAGE COUNT */}
+                <div className="flex items-center justify-between mt-3">
+                  <span className="font-['DM_Sans'] text-sm font-medium text-[#a65300]">
+                    Usage:
+                  </span>
+                  <div className="font-mono text-lg font-bold text-[#ec7913]">
+                    {codeUsage.usageCount} / {codeUsage.maxUsage}
+                  </div>
+                </div>
+
                 <p className="font-['DM_Sans'] text-xs text-[#b35f00] mt-2">
                   This code will expire after {codeExpiry} days. Please use it
                   to complete your registration before then. <br />

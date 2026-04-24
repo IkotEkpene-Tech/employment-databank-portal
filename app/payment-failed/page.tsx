@@ -78,8 +78,9 @@ const PaymentFailedPage = () => {
               Don't worry — even if you have been debited, it will be reversed.
             </p>
             <p className="font-['DM_Sans'] text-md text-[#9b7070]">
-              If it is not reversed, please reach out to the admin at the Local
-              Government Council please. Thank you
+              If it is not reversed, please click on the chat icon and place a
+              complain and we will reach out to you as soon as possible. Please
+              include the payment reference in the message. Thank you
             </p>
           </div>
 
