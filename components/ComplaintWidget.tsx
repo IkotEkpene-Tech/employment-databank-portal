@@ -180,6 +180,8 @@ export const ComplaintWidget = () => {
 
               <p className="mt-1 text-sm text-white/80">
                 Kindly provide the details below so we can assist you quickly.
+                Please if it is payment related, please include the payment
+                reference code to help us track it. Thank you.
               </p>
             </div>
 
