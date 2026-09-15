@@ -180,7 +180,7 @@ const stripFiles = (values: RegistrationFormValues): Partial<SerializableFormVal
 };
 
 export const EmploymentRegistrationPage = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const accessVerified = Boolean((location.state as { accessVerified?: boolean } | null)?.accessVerified);
@@ -192,19 +192,6 @@ export const EmploymentRegistrationPage = () => {
 
   const wardsQuery = useQuery({ queryKey: ["wards"], queryFn: getWardsAndVillages });
   const wards = wardsQuery.data ?? [];
-
-  const draftQuery = useQuery({
-    queryKey: ["registration-draft", user?.id],
-    queryFn: getRegistrationDraft,
-    enabled: Boolean(user),
-  });
-
-  useEffect(() => {
-    if (draftQuery.isError) {
-      toast.error("Couldn't check for saved progress — starting a fresh form.");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftQuery.isError]);
 
   // The NIN provider's gender format isn't normalized server-side, so match
   // loosely ("f"/"female"/"F"...) rather than assuming a single-letter code.
@@ -222,17 +209,34 @@ export const EmploymentRegistrationPage = () => {
     },
   });
 
-  // Hydrate the form from a saved draft (if any) once, after the draft request resolves.
+  // Hydrate the form from a saved draft (if any), once per mount. This is a
+  // plain one-off network call rather than useQuery: react-query's shared
+  // cache for ["registration-draft", ...] can still be holding a stale
+  // value (e.g. `null` from before anything was ever saved) from a previous
+  // visit to this page, and would apply that instead of the fresh draft —
+  // silently discarding "Save & Exit" progress on the next visit.
   useEffect(() => {
-    if (hasHydrated || draftQuery.isLoading || !draftQuery.isFetched) return;
-    const draft = draftQuery.data;
-    if (draft) {
-      form.reset({ ...form.getValues(), ...draft.values });
-      setStep(Math.min(draft.step ?? 0, STEP_LABELS.length - 1));
-      toast.info("Resumed your saved registration progress.");
-    }
-    setHasHydrated(true);
-  }, [draftQuery.isLoading, draftQuery.isFetched, draftQuery.data, hasHydrated, form]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const draft = await getRegistrationDraft();
+        if (cancelled) return;
+        if (draft) {
+          form.reset({ ...form.getValues(), ...draft.values });
+          setStep(Math.min(draft.step ?? 0, STEP_LABELS.length - 1));
+          toast.info("Resumed your saved registration progress.");
+        }
+      } catch {
+        if (!cancelled) toast.error("Couldn't check for saved progress — starting a fresh form.");
+      } finally {
+        if (!cancelled) setHasHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveDraftMutation = useMutation({
     mutationFn: saveRegistrationDraft,
@@ -260,8 +264,13 @@ export const EmploymentRegistrationPage = () => {
 
   const submitMutation = useMutation({
     mutationFn: submitApplication,
-    onSuccess: () => {
+    onSuccess: async () => {
       deleteRegistrationDraft().catch(() => undefined);
+      // Without this, the AuthContext's cached user still shows the old
+      // applicationStatus, so a later visit to this page would fall through
+      // the "submitted" check and land back in the editable wizard instead
+      // of the read-only view.
+      await refreshUser();
       setDone(true);
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Submission failed"),
@@ -333,7 +342,7 @@ export const EmploymentRegistrationPage = () => {
     submitMutation.mutate(formData);
   };
 
-  if (draftQuery.isLoading) {
+  if (!hasHydrated) {
     return (
       <DashboardShell title="Employment Registration">
         <PageLoader title="Checking for saved progress..." />
