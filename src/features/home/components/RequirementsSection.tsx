@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { ArrowRight } from "lucide-react";
 import { Reveal, Container } from "@/shared/components";
 import { Button } from "@/shared/ui";
-import { ACCOUNT_REQUIREMENTS, APPLICATION_REQUIREMENTS } from "@/shared/content/requirements";
+import {
+  ACCOUNT_REQUIREMENTS,
+  APPLICATION_REQUIREMENTS,
+} from "@/shared/content/requirements";
 
 const Section = styled.section`
   padding: 5rem 0;
@@ -66,7 +68,8 @@ const GroupStep = styled.p`
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: ${({ theme }) => theme.colors.secondary.DEFAULT};
-  background: ${({ theme }) => theme.alpha(theme.colors.secondary.DEFAULT, 0.1)};
+  background: ${({ theme }) =>
+    theme.alpha(theme.colors.secondary.DEFAULT, 0.1)};
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
   margin: 0 0 0.75rem;
@@ -115,46 +118,16 @@ const CtaRow = styled.div`
 `;
 
 export const RequirementsSection = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const wasVisible = useRef(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // Clearing the hash once the user scrolls away lets them click the
-  // "Requirements" hero button again and have it actually re-scroll —
-  // otherwise the hash never changes, so nothing re-triggers the scroll.
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          wasVisible.current = true;
-          return;
-        }
-        if (wasVisible.current && location.hash === "#requirements") {
-          navigate(location.pathname + location.search, { replace: true });
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.hash]);
-
   return (
-    <Section id="requirements" ref={sectionRef}>
+    <Section id="requirements">
       <Container>
         <Reveal>
           <Header>
             <Eyebrow>Before You Begin</Eyebrow>
             <Title>Everything you'll need</Title>
             <Subtitle>
-              Applying happens in two phases — creating your account, then applying for
-              employment. Here's what each one requires.
+              Applying happens in two phases — creating your account, then
+              applying for employment. Here's what each one requires.
             </Subtitle>
           </Header>
         </Reveal>
