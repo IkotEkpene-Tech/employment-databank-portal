@@ -87,13 +87,9 @@ export const MediaCol = styled.div`
 export const MediaFrame = styled.div`
   position: relative;
   width: 100%;
-  // max-width: 22rem;
+  max-width: 22rem;
   aspect-ratio: 4 / 3;
-  // border-radius: ${({ theme }) => theme.radii["2xl"]};
-  // overflow: hidden;
-  // box-shadow: ${({ theme }) => theme.shadows.xl};
-  // background: rgba(255, 255, 255, 0.05);
-  // border: 1px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
 `;
 
 export const SlideLayer = styled.div<{ $active: boolean }>`
@@ -103,10 +99,10 @@ export const SlideLayer = styled.div<{ $active: boolean }>`
   transition: opacity 1000ms ease;
 `;
 
-export const SlideImage = styled.img`
+export const SlideImage = styled.img<{ $objectFit?: "contain" | "cover" }>`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: ${({ $objectFit = "contain" }) => $objectFit};
 `;
 
 export const SlideCaption = styled.div`
