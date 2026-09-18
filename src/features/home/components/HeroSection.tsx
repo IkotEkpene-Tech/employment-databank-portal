@@ -67,7 +67,10 @@ const heroSlides: HeroSlide[] = [
     title: "A Databank Built for Every Indigene",
     subtitle:
       "“This programme exists to help our people find sustainable employment and skills development opportunities — it is for Ikot Ekpene indigenes only.”",
-    caption: { name: "Hon. (Eld) Aniefiok Nkom", role: "Executive Chairman, Ikot Ekpene LGA" },
+    caption: {
+      name: "Hon. (Eld) Aniefiok Nkom",
+      role: "Executive Chairman, Ikot Ekpene LGA",
+    },
   },
   {
     image: "/logo/akwa-ibom-logo-main.png",
@@ -110,7 +113,11 @@ export const HeroSection = () => {
           </Eyebrow>
           <Title key={`title-${current}`}>{active.title}</Title>
           <Subtitle key={`subtitle-${current}`}>{active.subtitle}</Subtitle>
-          {cta && <CtaRow key={`cta-${current}`}>{active.glow ? <GlowWrap>{cta}</GlowWrap> : cta}</CtaRow>}
+          {cta && (
+            <CtaRow key={`cta-${current}`}>
+              {active.glow ? <GlowWrap>{cta}</GlowWrap> : cta}
+            </CtaRow>
+          )}
           <MobileRequirementsLink to="/#requirements">
             <ListChecks size={16} /> View Requirements
           </MobileRequirementsLink>
@@ -120,7 +127,10 @@ export const HeroSection = () => {
           <MediaFrame>
             {heroSlides.map((slide, index) => (
               <SlideLayer key={index} $active={index === current}>
-                <SlideImage src={slide.image} alt={slide.caption?.name ?? "Employment databank"} />
+                <SlideImage
+                  src={slide.image}
+                  alt={slide.caption?.name ?? "Employment databank"}
+                />
                 {slide.caption && (
                   <SlideCaption>
                     <CaptionName>{slide.caption.name}</CaptionName>
