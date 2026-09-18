@@ -108,7 +108,7 @@ export const SubmittedApplicationView = () => {
             <div>
               <DT>Full Name</DT>
               <DD>
-                {data.firstName} {data.surname} {data.otherName ?? ""}
+                {data.firstName} {data.otherName ?? ""} {data.surname}
               </DD>
             </div>
             <div>
