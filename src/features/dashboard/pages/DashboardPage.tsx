@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
-import { DashboardShell, PageLoader } from "@/shared/components";
+import { DashboardShell } from "@/shared/components";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { getApplicantSummary } from "../api";
 import { ProfileSummaryCard } from "../components/ProfileSummaryCard";
@@ -21,26 +22,36 @@ const CardGrid = styled.div`
 `;
 
 export const DashboardPage = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+
+  // /applicants/me and /auth/me are the exact same backend serializer, so
+  // this is purely a background freshness check — it should never be
+  // rendered from directly, only used to correct `user` if the server has
+  // moved on since the last refreshUser() call (e.g. an access code expired
+  // while idle). Rendering from `user` instead of this query's own cache
+  // avoids briefly showing a stale "Continue Application" state right after
+  // submitting, since `user` is already updated synchronously at that point.
   const summaryQuery = useQuery({
     queryKey: ["dashboard-summary", user?.id],
     queryFn: getApplicantSummary,
     enabled: Boolean(user),
   });
 
-  if (!user) return null;
+  useEffect(() => {
+    if (summaryQuery.data) setUser(summaryQuery.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summaryQuery.data]);
 
-  const displayUser = summaryQuery.data ?? user;
+  if (!user) return null;
 
   return (
     <DashboardShell title="Overview">
-      <Greeting>Welcome back{displayUser.firstName ? `, ${displayUser.firstName}` : ""}.</Greeting>
-      {summaryQuery.isLoading && <PageLoader title="Loading your dashboard..." />}
-      <StartRegistrationCta user={displayUser} />
+      <Greeting>Welcome back{user.firstName ? `, ${user.firstName}` : ""}.</Greeting>
+      <StartRegistrationCta user={user} />
       <CardGrid>
-        <ProfileSummaryCard user={displayUser} />
-        <ApplicationStatusCard user={displayUser} />
-        <AccessCodeCard user={displayUser} />
+        <ProfileSummaryCard user={user} />
+        <ApplicationStatusCard user={user} />
+        <AccessCodeCard user={user} />
       </CardGrid>
     </DashboardShell>
   );

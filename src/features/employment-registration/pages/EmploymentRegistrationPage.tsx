@@ -5,7 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
-import { ChevronLeft, ChevronRight, Loader2, Save, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Save,
+  CheckCircle2,
+  AlertTriangle,
+  RefreshCw,
+} from "lucide-react";
 import { DashboardShell, PageLoader } from "@/shared/components";
 import { Card, CardContent, Button, toast } from "@/shared/ui";
 import { useAuth } from "@/features/auth/context/AuthContext";
@@ -23,7 +31,11 @@ import { EducationSkillsStep } from "../components/steps/EducationSkillsStep";
 import { DocumentsStep } from "../components/steps/DocumentsStep";
 import { SuccessState } from "../components/SuccessState";
 import { SubmittedApplicationView } from "../components/SubmittedApplicationView";
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from "../types";
+import {
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  ALLOWED_FILE_TYPES,
+} from "../types";
 import type { RegistrationFormValues, SerializableFormValues } from "../types";
 
 const STEP_LABELS = ["Personal", "Location", "Education & Skills", "Documents"];
@@ -69,10 +81,22 @@ const DEFAULT_VALUES: RegistrationFormValues = {
 
 const schema = z
   .object({
-    surname: z.string().min(2, "Surname must be at least 2 characters").max(100, "Surname must not exceed 100 characters"),
-    firstName: z.string().min(2, "First name must be at least 2 characters").max(100, "First name must not exceed 100 characters"),
-    otherName: z.string().max(100, "Other name must not exceed 100 characters").optional().default(""),
-    gender: z.enum(["male", "female"], { errorMap: () => ({ message: "Please select your gender" }) }),
+    surname: z
+      .string()
+      .min(2, "Surname must be at least 2 characters")
+      .max(100, "Surname must not exceed 100 characters"),
+    firstName: z
+      .string()
+      .min(2, "First name must be at least 2 characters")
+      .max(100, "First name must not exceed 100 characters"),
+    otherName: z
+      .string()
+      .max(100, "Other name must not exceed 100 characters")
+      .optional()
+      .default(""),
+    gender: z.enum(["male", "female"], {
+      errorMap: () => ({ message: "Please select your gender" }),
+    }),
     vin: z.string().min(19, "VIN must be at least 19 characters"),
     ward: z.string().min(1, "Please select your ward"),
     village: z.string().min(1, "Please select your village"),
@@ -81,32 +105,66 @@ const schema = z
     }),
     highestQualification: z.string().optional().default(""),
     discipline: z.string().optional().default(""),
-    otherDiscipline: z.string().max(200, "Keep this under 200 characters").optional().default(""),
+    otherDiscipline: z
+      .string()
+      .max(200, "Keep this under 200 characters")
+      .optional()
+      .default(""),
     certificate: z.any().nullable(),
     vocationalSkill: z.string().min(1, "Please select a skill"),
-    otherSkill: z.string().max(200, "Keep this under 200 characters").optional().default(""),
+    otherSkill: z
+      .string()
+      .max(200, "Keep this under 200 characters")
+      .optional()
+      .default(""),
     skillAcquisition: z.string().optional().default(""),
-    otherSkillAcquisition: z.string().max(200, "Keep this under 200 characters").optional().default(""),
-    villageHeadName: z.string().min(2, "Village head name must be at least 2 characters").max(100, "Village head name must not exceed 100 characters"),
+    otherSkillAcquisition: z
+      .string()
+      .max(200, "Keep this under 200 characters")
+      .optional()
+      .default(""),
+    villageHeadName: z
+      .string()
+      .min(2, "Village head name must be at least 2 characters")
+      .max(100, "Village head name must not exceed 100 characters"),
     villageHeadPhone: z
       .string()
-      .regex(/^0[0-9]{10}$/, "Enter a valid 11-digit phone number starting with 0"),
+      .regex(
+        /^0[0-9]{10}$/,
+        "Enter a valid 11-digit phone number starting with 0",
+      ),
     certificateOfOrigin: z.any().nullable(),
   })
   .superRefine((data, ctx) => {
     if (data.hasEducation === "yes") {
       if (!data.highestQualification) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["highestQualification"], message: "Please select your highest qualification" });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["highestQualification"],
+          message: "Please select your highest qualification",
+        });
       }
       if (!data.discipline) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["discipline"], message: "Please select your discipline" });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["discipline"],
+          message: "Please select your discipline",
+        });
       }
     }
     if (data.discipline === "Other" && !data.otherDiscipline) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["otherDiscipline"], message: "Please specify your discipline" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["otherDiscipline"],
+        message: "Please specify your discipline",
+      });
     }
     if (data.vocationalSkill === "Other" && !data.otherSkill) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["otherSkill"], message: "Please specify your skill" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["otherSkill"],
+        message: "Please specify your skill",
+      });
     }
     if (data.skillAcquisition === "Other" && !data.otherSkillAcquisition) {
       ctx.addIssue({
@@ -118,21 +176,41 @@ const schema = z
     const certificate = data.certificate as File | null;
     if (certificate) {
       if (certificate.size > MAX_FILE_SIZE_BYTES) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["certificate"], message: `File size must not be more than ${MAX_FILE_SIZE_MB}MB` });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["certificate"],
+          message: `File size must not be more than ${MAX_FILE_SIZE_MB}MB`,
+        });
       }
       if (!ALLOWED_FILE_TYPES.includes(certificate.type)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["certificate"], message: "Only PDF, JPG, JPEG and PNG files are allowed" });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["certificate"],
+          message: "Only PDF, JPG, JPEG and PNG files are allowed",
+        });
       }
     }
     const certificateOfOrigin = data.certificateOfOrigin as File | null;
     if (!certificateOfOrigin) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["certificateOfOrigin"], message: "Please upload your Certificate of Origin" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["certificateOfOrigin"],
+        message: "Please upload your Certificate of Origin",
+      });
     } else {
       if (certificateOfOrigin.size > MAX_FILE_SIZE_BYTES) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["certificateOfOrigin"], message: `File size must not be more than ${MAX_FILE_SIZE_MB}MB` });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["certificateOfOrigin"],
+          message: `File size must not be more than ${MAX_FILE_SIZE_MB}MB`,
+        });
       }
       if (!ALLOWED_FILE_TYPES.includes(certificateOfOrigin.type)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["certificateOfOrigin"], message: "Only PDF, JPG, JPEG and PNG files are allowed" });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["certificateOfOrigin"],
+          message: "Only PDF, JPG, JPEG and PNG files are allowed",
+        });
       }
     }
   });
@@ -174,8 +252,14 @@ const ActionsRight = styled.div`
 
 const DRAFT_SAVE_DEBOUNCE_MS = 1500;
 
-const stripFiles = (values: RegistrationFormValues): Partial<SerializableFormValues> => {
-  const { certificate: _certificate, certificateOfOrigin: _certificateOfOrigin, ...rest } = values;
+const stripFiles = (
+  values: RegistrationFormValues,
+): Partial<SerializableFormValues> => {
+  const {
+    certificate: _certificate,
+    certificateOfOrigin: _certificateOfOrigin,
+    ...rest
+  } = values;
   return rest;
 };
 
@@ -183,20 +267,29 @@ export const EmploymentRegistrationPage = () => {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const accessVerified = Boolean((location.state as { accessVerified?: boolean } | null)?.accessVerified);
+  const accessVerified = Boolean(
+    (location.state as { accessVerified?: boolean } | null)?.accessVerified,
+  );
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const wardsQuery = useQuery({ queryKey: ["wards"], queryFn: getWardsAndVillages });
+  const wardsQuery = useQuery({
+    queryKey: ["wards"],
+    queryFn: getWardsAndVillages,
+  });
   const wards = wardsQuery.data ?? [];
 
   // The NIN provider's gender format isn't normalized server-side, so match
   // loosely ("f"/"female"/"F"...) rather than assuming a single-letter code.
   const genderHint = user?.gender?.toLowerCase() ?? "";
-  const prefillGender = genderHint.startsWith("f") ? "female" : genderHint.startsWith("m") ? "male" : "";
+  const prefillGender = genderHint.startsWith("f")
+    ? "female"
+    : genderHint.startsWith("m")
+      ? "male"
+      : "";
 
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(schema) as never,
@@ -227,7 +320,10 @@ export const EmploymentRegistrationPage = () => {
           toast.info("Resumed your saved registration progress.");
         }
       } catch {
-        if (!cancelled) toast.error("Couldn't check for saved progress — starting a fresh form.");
+        if (!cancelled)
+          toast.error(
+            "Couldn't check for saved progress — starting a fresh form.",
+          );
       } finally {
         if (!cancelled) setHasHydrated(true);
       }
@@ -245,7 +341,10 @@ export const EmploymentRegistrationPage = () => {
 
   const persistDraft = (nextStep: number) => {
     if (!hasHydrated) return;
-    saveDraftMutation.mutate({ values: stripFiles(form.getValues()), step: nextStep });
+    saveDraftMutation.mutate({
+      values: stripFiles(form.getValues()),
+      step: nextStep,
+    });
   };
 
   // Debounced autosave on every field change.
@@ -253,7 +352,10 @@ export const EmploymentRegistrationPage = () => {
     if (!hasHydrated) return;
     const subscription = form.watch(() => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => persistDraft(step), DRAFT_SAVE_DEBOUNCE_MS);
+      saveTimer.current = setTimeout(
+        () => persistDraft(step),
+        DRAFT_SAVE_DEBOUNCE_MS,
+      );
     });
     return () => {
       subscription.unsubscribe();
@@ -273,7 +375,8 @@ export const EmploymentRegistrationPage = () => {
       await refreshUser();
       setDone(true);
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Submission failed"),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Submission failed"),
   });
 
   if (!user) return null;
@@ -323,7 +426,9 @@ export const EmploymentRegistrationPage = () => {
       { values: stripFiles(form.getValues()), step },
       {
         onSuccess: () => {
-          toast.success("Progress saved. Continue anytime from your dashboard.");
+          toast.success(
+            "Progress saved. Continue anytime from your dashboard.",
+          );
           navigate("/dashboard");
         },
       },
@@ -356,12 +461,20 @@ export const EmploymentRegistrationPage = () => {
         <TopRow>
           {saveDraftMutation.isPending ? (
             <SaveStatus>
-              <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Saving...
+              <Loader2
+                size={13}
+                style={{ animation: "spin 1s linear infinite" }}
+              />{" "}
+              Saving...
             </SaveStatus>
           ) : (
             savedAt && (
               <SaveStatus>
-                <CheckCircle2 size={13} /> Saved {savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <CheckCircle2 size={13} /> Saved{" "}
+                {savedAt.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </SaveStatus>
             )
           )}
@@ -382,23 +495,45 @@ export const EmploymentRegistrationPage = () => {
             {step === 0 && <PersonalInfoStep form={form} user={user} />}
             {step === 1 && (
               <>
-                {wardsQuery.isLoading && <PageLoader title="Loading wards..." />}
+                {wardsQuery.isLoading && (
+                  <PageLoader title="Loading wards..." />
+                )}
                 {wardsQuery.isError && (
                   <CardContent>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", padding: "1.5rem 0" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        padding: "1.5rem 0",
+                      }}
+                    >
                       <AlertTriangle size={32} color="#EF4444" />
-                      <p style={{ textAlign: "center", color: "#677E76", fontSize: "0.875rem", margin: 0 }}>
+                      <p
+                        style={{
+                          textAlign: "center",
+                          color: "#677E76",
+                          fontSize: "0.875rem",
+                          margin: 0,
+                        }}
+                      >
                         {wardsQuery.error instanceof Error
                           ? wardsQuery.error.message
                           : "Couldn't load the list of wards. Please try again."}
                       </p>
-                      <Button type="button" onClick={() => wardsQuery.refetch()}>
+                      <Button
+                        type="button"
+                        onClick={() => wardsQuery.refetch()}
+                      >
                         <RefreshCw size={15} /> Try Again
                       </Button>
                     </div>
                   </CardContent>
                 )}
-                {wardsQuery.isSuccess && <LocationStep form={form} wards={wards} />}
+                {wardsQuery.isSuccess && (
+                  <LocationStep form={form} wards={wards} />
+                )}
               </>
             )}
             {step === 2 && <EducationSkillsStep form={form} />}
@@ -406,11 +541,21 @@ export const EmploymentRegistrationPage = () => {
           </StyledCard>
 
           <Actions>
-            <Button type="button" variant="outline" onClick={goBack} disabled={step === 0}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={goBack}
+              disabled={step === 0}
+            >
               <ChevronLeft size={16} /> Back
             </Button>
             <ActionsRight>
-              <Button type="button" variant="outline" onClick={handleSaveAndExit} disabled={saveDraftMutation.isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveAndExit}
+                disabled={saveDraftMutation.isPending}
+              >
                 <Save size={16} /> Save &amp; Exit
               </Button>
               {step < STEP_LABELS.length - 1 ? (
@@ -421,7 +566,11 @@ export const EmploymentRegistrationPage = () => {
                 <Button type="submit" disabled={submitMutation.isPending}>
                   {submitMutation.isPending ? (
                     <>
-                      <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Submitting...
+                      <Loader2
+                        size={16}
+                        style={{ animation: "spin 1s linear infinite" }}
+                      />{" "}
+                      Submitting...
                     </>
                   ) : (
                     "Submit Registration"
