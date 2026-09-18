@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { ShieldCheck, Lock, Users, Sparkles, MessageCircleMore } from "lucide-react";
+import {
+  ShieldCheck,
+  Lock,
+  Users,
+  Sparkles,
+  MessageCircleMore,
+} from "lucide-react";
 import { ScrollToTopButton } from "./ScrollToTopButton";
 
 const FooterEl = styled.footer`
@@ -10,13 +16,35 @@ const FooterEl = styled.footer`
   color: rgba(255, 255, 255, 0.75);
   padding: 4rem 1.25rem 1.75rem;
   margin-top: auto;
-  border-top: 1px solid ${({ theme }) => theme.alpha(theme.colors.highlight, 0.15)};
+  border-top: 1px solid
+    ${({ theme }) => theme.alpha(theme.colors.highlight, 0.15)};
 
-  background-image: radial-gradient(1.5px 1.5px at 12% 22%, rgba(255, 255, 255, 0.18) 100%, transparent),
-    radial-gradient(1.5px 1.5px at 32% 68%, rgba(255, 255, 255, 0.14) 100%, transparent),
-    radial-gradient(2px 2px at 58% 15%, rgba(255, 255, 255, 0.12) 100%, transparent),
-    radial-gradient(1.5px 1.5px at 74% 78%, rgba(255, 255, 255, 0.16) 100%, transparent),
-    radial-gradient(2px 2px at 90% 35%, rgba(255, 255, 255, 0.1) 100%, transparent),
+  background-image:
+    radial-gradient(
+      1.5px 1.5px at 12% 22%,
+      rgba(255, 255, 255, 0.18) 100%,
+      transparent
+    ),
+    radial-gradient(
+      1.5px 1.5px at 32% 68%,
+      rgba(255, 255, 255, 0.14) 100%,
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 58% 15%,
+      rgba(255, 255, 255, 0.12) 100%,
+      transparent
+    ),
+    radial-gradient(
+      1.5px 1.5px at 74% 78%,
+      rgba(255, 255, 255, 0.16) 100%,
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 90% 35%,
+      rgba(255, 255, 255, 0.1) 100%,
+      transparent
+    ),
     ${({ theme }) => theme.gradients.footer};
 `;
 
@@ -89,8 +117,10 @@ const Badge = styled.div`
 `;
 
 const Note = styled.div`
-  border: 1px solid ${({ theme }) => theme.alpha(theme.colors.secondary.DEFAULT, 0.4)};
-  background: ${({ theme }) => theme.alpha(theme.colors.secondary.DEFAULT, 0.1)};
+  border: 1px solid
+    ${({ theme }) => theme.alpha(theme.colors.secondary.DEFAULT, 0.4)};
+  background: ${({ theme }) =>
+    theme.alpha(theme.colors.secondary.DEFAULT, 0.1)};
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 0.9rem 1.1rem;
   font-size: 0.78125rem;
@@ -174,7 +204,10 @@ export const Footer = () => (
         <BrandCol>
           <LogoRow>
             <LogoImg src="/logo/ik-logo-2.png" alt="Ikot Ekpene LGA logo" />
-            <LogoImg src="/logo/akwa-ibom-logo-main.png" alt="Akwa Ibom State Government logo" />
+            <LogoImg
+              src="/logo/akwa-ibom-logo-main.png"
+              alt="Akwa Ibom State Government logo"
+            />
           </LogoRow>
           <OrgName>Ikot Ekpene Local Government Area</OrgName>
           <OrgSub>
@@ -183,14 +216,23 @@ export const Footer = () => (
             Chairmanship of Hon. (Eld) Aniefiok Nkom
           </OrgSub>
           <BadgeRow>
-            <Badge title="NIN Verified"><ShieldCheck size={15} /></Badge>
-            <Badge title="Secure"><Lock size={15} /></Badge>
-            <Badge title="Indigene Access"><Users size={15} /></Badge>
-            <Badge title="Skills & Empowerment"><Sparkles size={15} /></Badge>
+            <Badge title="NIN Verified">
+              <ShieldCheck size={15} />
+            </Badge>
+            <Badge title="Secure">
+              <Lock size={15} />
+            </Badge>
+            <Badge title="Indigene Access">
+              <Users size={15} />
+            </Badge>
+            <Badge title="Skills & Empowerment">
+              <Sparkles size={15} />
+            </Badge>
           </BadgeRow>
           <Note>
-            <strong>Note:</strong> applying for employment requires a valid NIN and a one-time ₦500
-            access-code fee. See our <Link to="/terms">Terms &amp; Conditions</Link> before you begin.
+            <strong>Note:</strong> applying for employment requires a valid NIN
+            and a one-time ₦500 access-code fee. See our{" "}
+            <Link to="/terms">Terms &amp; Conditions</Link> before you begin.
           </Note>
         </BrandCol>
 
@@ -208,7 +250,7 @@ export const Footer = () => (
           <ColTitle>Account</ColTitle>
           <ColLinks>
             <ColLink to="/login">Log In</ColLink>
-            <ColLink to="/login/otp">Log In with a Code</ColLink>
+            <ColLink to="/login?tab=otp">Log In with a Code</ColLink>
             <ColLink to="/forgot-password">Forgot Password</ColLink>
             <ColLink to="/dashboard">Dashboard</ColLink>
           </ColLinks>
@@ -221,8 +263,12 @@ export const Footer = () => (
             <ColLink to="/terms">Terms &amp; Conditions</ColLink>
           </ColLinks>
           <HelpRow style={{ marginTop: "1rem" }}>
-            <MessageCircleMore size={16} style={{ flexShrink: 0, marginTop: "0.1rem" }} />
-            Need help? Use the complaint icon in the corner of this page to reach support.
+            <MessageCircleMore
+              size={16}
+              style={{ flexShrink: 0, marginTop: "0.1rem" }}
+            />
+            Need help? Use the complaint icon in the corner of this page to
+            reach support.
           </HelpRow>
         </div>
       </Grid>
@@ -230,7 +276,10 @@ export const Footer = () => (
       <Divider />
 
       <BottomBar>
-        <span>© {new Date().getFullYear()} Ikot Ekpene Local Government Area. All rights reserved.</span>
+        <span>
+          © {new Date().getFullYear()} Ikot Ekpene Local Government Area. All
+          rights reserved.
+        </span>
         <span>Official Employment Databank Registration Portal</span>
       </BottomBar>
     </Inner>

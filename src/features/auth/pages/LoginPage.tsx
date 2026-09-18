@@ -1,48 +1,46 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import styled from "styled-components";
 import { AuthLayout } from "../components/AuthLayout";
-import { FormField } from "../components/FormField";
-import { Input, PasswordInput, Button, toast } from "@/shared/ui";
-import { useAuth } from "../context/AuthContext";
-import { ApiError } from "@/shared/lib";
+import { PasswordLoginForm } from "../components/PasswordLoginForm";
+import { OtpLoginForm } from "../components/OtpLoginForm";
 
-const schema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+const Toggle = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: 0.25rem;
+`;
 
-type FormValues = z.infer<typeof schema>;
+const ToggleButton = styled.button<{ $active: boolean }>`
+  flex: 1;
+  border: none;
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.primary.DEFAULT : "transparent"};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.primary.foreground : theme.colors.muted.foreground};
+  padding: 0.6rem 0.5rem;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: ${({ $active }) => ($active ? 1 : 0.5)};
+  }
+`;
+
+type LoginTab = "password" | "otp";
 
 export const LoginPage = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
-
-  const onSubmit = async (values: FormValues) => {
-    try {
-      await login(values);
-      const from = (location.state as { from?: Location })?.from as unknown as
-        | string
-        | undefined;
-      navigate(from || "/dashboard", { replace: true });
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
-        toast.info("Please verify your email first — we've sent you a new code.");
-        navigate("/verify-email", { state: { email: values.email } });
-        return;
-      }
-      toast.error(
-        error instanceof Error ? error.message : "Invalid email or password",
-      );
-    }
-  };
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<LoginTab>(
+    searchParams.get("tab") === "otp" ? "otp" : "password",
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
     <AuthLayout
@@ -54,55 +52,30 @@ export const LoginPage = () => {
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <FormField label="Email Address" required error={errors.email?.message}>
-          <Input
-            type="email"
-            placeholder="example@email.com"
-            {...register("email")}
-          />
-        </FormField>
-        <FormField label="Password" required error={errors.password?.message}>
-          <PasswordInput placeholder="••••••••" {...register("password")} />
-        </FormField>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "1rem",
-          }}
-        >
-          <Link
-            to="/forgot-password"
-            style={{ fontSize: "0.8125rem", color: "#0B4923", fontWeight: 600 }}
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <Button
-          type="submit"
-          size="lg"
-          style={{ width: "100%" }}
+      <Toggle>
+        <ToggleButton
+          type="button"
+          $active={tab === "password"}
           disabled={isSubmitting}
+          onClick={() => setTab("password")}
         >
-          {isSubmitting ? "Logging in..." : "Log In"}
-        </Button>
-      </form>
+          Password
+        </ToggleButton>
+        <ToggleButton
+          type="button"
+          $active={tab === "otp"}
+          disabled={isSubmitting}
+          onClick={() => setTab("otp")}
+        >
+          One-Time Code
+        </ToggleButton>
+      </Toggle>
 
-      <div
-        style={{
-          textAlign: "center",
-          marginTop: "1.25rem",
-          fontSize: "0.8125rem",
-        }}
-      >
-        Prefer not to use a password?{" "}
-        <Link to="/login/otp" style={{ color: "#FE6301", fontWeight: 600 }}>
-          Log in with a one-time code
-        </Link>
-      </div>
+      {tab === "password" ? (
+        <PasswordLoginForm onSubmittingChange={setIsSubmitting} />
+      ) : (
+        <OtpLoginForm onSubmittingChange={setIsSubmitting} />
+      )}
     </AuthLayout>
   );
 };
