@@ -46,7 +46,7 @@ const Pending = styled(DD)`
 
 export const ProfileSummaryCard = ({ user }: { user: User }) => {
   const hasVerifiedNin = Boolean(user.firstName && user.surname);
-  const fullName = hasVerifiedNin ? `${user.firstName} ${user.surname} ${user.otherName ?? ""}`.trim() : null;
+  const fullName = hasVerifiedNin ? `${user.firstName} ${user.otherName ?? ""} ${user.surname}`.trim() : null;
 
   return (
     <Card>

@@ -53,7 +53,7 @@ export const NinConfirmModal = ({ open, data, onClose, onConfirm, onRetry, isCon
           <div>
             <DT>Full Name</DT>
             <DD>
-              {data.firstName} {data.surname} {data.otherName ?? ""}
+              {data.firstName} {data.otherName ?? ""} {data.surname}
             </DD>
           </div>
           <div>
