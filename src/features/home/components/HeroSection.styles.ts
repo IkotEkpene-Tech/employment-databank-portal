@@ -87,13 +87,13 @@ export const MediaCol = styled.div`
 export const MediaFrame = styled.div`
   position: relative;
   width: 100%;
-  max-width: 22rem;
+  // max-width: 22rem;
   aspect-ratio: 4 / 3;
-  border-radius: ${({ theme }) => theme.radii["2xl"]};
-  overflow: hidden;
-  box-shadow: ${({ theme }) => theme.shadows.xl};
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  // border-radius: ${({ theme }) => theme.radii["2xl"]};
+  // overflow: hidden;
+  // box-shadow: ${({ theme }) => theme.shadows.xl};
+  // background: rgba(255, 255, 255, 0.05);
+  // border: 1px solid rgba(255, 255, 255, 0.15);
 `;
 
 export const SlideLayer = styled.div<{ $active: boolean }>`
