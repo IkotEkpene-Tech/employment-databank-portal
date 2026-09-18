@@ -32,6 +32,11 @@ interface HeroSlide {
   ctaLink?: string;
   glow?: boolean;
   caption?: { name: string; role: string };
+  // "contain" (default) always shows the full image, letterboxed if its
+  // aspect ratio doesn't match the frame — right for logos and portraits.
+  // Only opt a slide into "cover" for a wide scenic photo where cropping
+  // to fill the frame is actually desirable.
+  objectFit?: "contain" | "cover";
 }
 
 const MobileRequirementsLink = styled(Link)`
@@ -63,7 +68,7 @@ const heroSlides: HeroSlide[] = [
     glow: true,
   },
   {
-    image: "/hon-nkom.jpeg",
+    image: "/hon-nkom.png",
     title: "A Databank Built for Every Indigene",
     subtitle:
       "“This programme exists to help our people find sustainable employment and skills development opportunities — it is for Ikot Ekpene indigenes only.”",
@@ -130,6 +135,7 @@ export const HeroSection = () => {
                 <SlideImage
                   src={slide.image}
                   alt={slide.caption?.name ?? "Employment databank"}
+                  $objectFit={slide.objectFit ?? "contain"}
                 />
                 {slide.caption && (
                   <SlideCaption>
