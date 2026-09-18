@@ -3,6 +3,7 @@ export { Reveal } from "./Reveal";
 export { GlowWrap } from "./GlowWrap";
 export { Modal } from "./Modal";
 export type { ModalType } from "./Modal";
+export { LogoutConfirmModal } from "./LogoutConfirmModal";
 export { Navbar } from "./Navbar";
 export { Footer } from "./Footer";
 export { PageShell } from "./PageShell";

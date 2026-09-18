@@ -1,7 +1,8 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { LayoutDashboard, FileText, LogOut, X } from "lucide-react";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { useLogoutConfirm } from "@/shared/hooks";
+import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 const NAV_ITEMS = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard },
@@ -97,13 +98,7 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const { isOpen: isLogoutOpen, isLoggingOut, requestLogout, cancelLogout, confirmLogout } = useLogoutConfirm();
 
   return (
     <>
@@ -122,11 +117,18 @@ export const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
             </NavItem>
           );
         })}
-        <LogoutButton onClick={handleLogout}>
+        <LogoutButton onClick={requestLogout}>
           <LogOut size={17} />
           Log out
         </LogoutButton>
       </Aside>
+
+      <LogoutConfirmModal
+        open={isLogoutOpen}
+        isLoggingOut={isLoggingOut}
+        onCancel={cancelLogout}
+        onConfirm={confirmLogout}
+      />
     </>
   );
 };

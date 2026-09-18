@@ -22,7 +22,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<User>;
   loginWithOtp: (payload: VerifyLoginOtpPayload) => Promise<User>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setUser: (user: User | null) => void;
   refreshUser: () => Promise<User | null>;
 }
@@ -103,8 +103,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [setUser],
   );
 
-  const logout = useCallback(() => {
-    logoutApi().catch(() => undefined);
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Token is invalidated locally regardless of whether the server call
+      // succeeded — no point blocking logout on a flaky network.
+    }
     tokenStorage.clear();
     setUser(null);
   }, [setUser]);

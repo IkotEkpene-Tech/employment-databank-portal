@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { Menu, X, LogOut } from "lucide-react";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { Button } from "@/shared/ui";
+import { useLogoutConfirm } from "@/shared/hooks";
+import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 const ikLogo = "/logo/ik-logo-2.png";
 
@@ -140,9 +142,9 @@ interface NavbarProps {
 export const Navbar = ({ variant = "solid" }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const { isOpen: isLogoutOpen, isLoggingOut, requestLogout, cancelLogout, confirmLogout } = useLogoutConfirm();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -150,11 +152,6 @@ export const Navbar = ({ variant = "solid" }: NavbarProps) => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const links = [
     { to: "/", label: "Home" },
@@ -190,7 +187,7 @@ export const Navbar = ({ variant = "solid" }: NavbarProps) => {
               <Button asChild variant="outline" size="sm" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.4)" }}>
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
-              <Button size="sm" variant="secondary" onClick={handleLogout}>
+              <Button size="sm" variant="secondary" onClick={requestLogout}>
                 <LogOut size={15} /> Log out
               </Button>
             </>
@@ -226,7 +223,7 @@ export const Navbar = ({ variant = "solid" }: NavbarProps) => {
                   to={location.pathname}
                   onClick={() => {
                     setOpen(false);
-                    handleLogout();
+                    requestLogout();
                   }}
                 >
                   Log out
@@ -245,6 +242,13 @@ export const Navbar = ({ variant = "solid" }: NavbarProps) => {
           </MobileMenu>
         )}
       </Inner>
+
+      <LogoutConfirmModal
+        open={isLogoutOpen}
+        isLoggingOut={isLoggingOut}
+        onCancel={cancelLogout}
+        onConfirm={confirmLogout}
+      />
     </Bar>
   );
 };
