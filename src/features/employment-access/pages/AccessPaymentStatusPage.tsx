@@ -131,7 +131,7 @@ export const AccessPaymentStatusPage = () => {
     );
   }
 
-  const { status, accessCode, nin } = statusQuery.data ?? { status: "pending" as const };
+  const { status, accessCode, maxTrials } = statusQuery.data ?? { status: "pending" as const };
 
   if (status === "failed") {
     return (
@@ -167,8 +167,11 @@ export const AccessPaymentStatusPage = () => {
               <Warning>Save this code now — it won&apos;t be shown again here. We&apos;ve also emailed it to you.</Warning>
             </>
           )}
+          <Message>
+            This code allows {maxTrials ?? 4} NIN verification attempts. You&apos;ll enter your NIN on the next step.
+          </Message>
           {!accessCode && <Message>Your access code has been emailed to you — check your inbox.</Message>}
-          <Button style={{ width: "100%" }} onClick={() => navigate("/apply", { state: { nin, accessCode } })}>
+          <Button style={{ width: "100%" }} onClick={() => navigate("/apply", { state: { accessCode } })}>
             Continue to Application
           </Button>
         </DashboardFormCard>
