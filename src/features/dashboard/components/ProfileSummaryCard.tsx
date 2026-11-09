@@ -1,6 +1,13 @@
 import styled from "styled-components";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/ui";
+import { Avatar, AvatarImage, AvatarFallback, Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/ui";
 import type { User } from "@/features/auth/api/types";
+
+const PhotoRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+`;
 
 const List = styled.dl`
   display: flex;
@@ -55,6 +62,14 @@ export const ProfileSummaryCard = ({ user }: { user: User }) => {
         <CardDescription>Your account and verified application details</CardDescription>
       </CardHeader>
       <CardContent>
+        {user.photo && (
+          <PhotoRow>
+            <Avatar style={{ width: "4.5rem", height: "4.5rem" }}>
+              <AvatarImage src={user.photo} alt="Your profile photo" />
+              <AvatarFallback>{user.firstName?.[0]}{user.surname?.[0]}</AvatarFallback>
+            </Avatar>
+          </PhotoRow>
+        )}
         <List>
           <Item>
             <DT>Full Name</DT>

@@ -17,6 +17,7 @@ interface AccessCodeGateFormProps {
   isSubmitting?: boolean;
   defaultNin?: string;
   defaultAccessCode?: string;
+  trialsRemaining?: number;
 }
 
 export const AccessCodeGateForm = ({
@@ -24,6 +25,7 @@ export const AccessCodeGateForm = ({
   isSubmitting,
   defaultNin = "",
   defaultAccessCode = "",
+  trialsRemaining,
 }: AccessCodeGateFormProps) => {
   const {
     register,
@@ -47,7 +49,19 @@ export const AccessCodeGateForm = ({
           render={({ field }) => <OtpInput length={8} value={field.value} onChange={field.onChange} />}
         />
       </FormField>
-      <Button type="submit" size="lg" style={{ width: "100%" }} disabled={isSubmitting}>
+      {trialsRemaining !== undefined && (
+        <p style={{ fontSize: "0.8125rem", margin: "0 0 1rem", color: trialsRemaining === 0 ? "#EF4444" : "inherit" }}>
+          {trialsRemaining === 0
+            ? "You have no verification attempts left on this access code."
+            : `Double-check your NIN — each submission uses one of your ${trialsRemaining} remaining attempt${trialsRemaining === 1 ? "" : "s"}.`}
+        </p>
+      )}
+      <Button
+        type="submit"
+        size="lg"
+        style={{ width: "100%" }}
+        disabled={isSubmitting || trialsRemaining === 0}
+      >
         {isSubmitting ? "Verifying..." : <>Verify &amp; Continue <ArrowRight size={16} /></>}
       </Button>
     </form>

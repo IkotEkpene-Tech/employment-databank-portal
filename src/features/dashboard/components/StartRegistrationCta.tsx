@@ -34,7 +34,7 @@ const Copy = styled.p`
 const COPY_MAP: Partial<Record<User["applicationStatus"], { title: string; copy: string; cta: string }>> = {
   not_started: {
     title: "Ready to apply for employment?",
-    copy: "You'll need your NIN and a ₦500 access code payment to begin.",
+    copy: "You'll need your NIN and a ₦500 access code (4 NIN verification attempts) to begin.",
     cta: "Begin Application",
   },
   access_pending: {
@@ -44,7 +44,7 @@ const COPY_MAP: Partial<Record<User["applicationStatus"], { title: string; copy:
   },
   access_issued: {
     title: "You have an access code",
-    copy: "Enter your NIN and access code to verify your identity and start applying.",
+    copy: "Enter your NIN and access code to verify your identity and start applying. Each NIN submitted uses one attempt.",
     cta: "Continue Application",
   },
   nin_verified: {
