@@ -23,6 +23,7 @@ export interface User {
   dob?: string;
   gender?: string;
   ninLast4?: string;
+  photo?: string; // data: URL of the NIN photo, set when the NIN is confirmed
 }
 
 export interface RegisterPayload {

@@ -52,8 +52,10 @@ export const TermsPage = () => (
 
     <LegalSection id="account-access-code" icon={KeyRound} tone="primary" title="Account & Access Code">
       <p>
-        After your NIN is verified, an access code is sent to your registered email address. This
-        code is single-use and time-limited. You are responsible for keeping your access code,
+        After your payment is confirmed, an access code is sent to your registered email address. This
+        code is time-limited and allows a limited number of NIN verification attempts; every NIN
+        submitted that receives a response from the verification service uses one attempt, even if
+        the NIN is incorrect. Attempts that fail because of a system or network problem are not counted. You are responsible for keeping your access code,
         password, and account details confidential. Notify us immediately if you suspect
         unauthorized access to your account.
       </p>

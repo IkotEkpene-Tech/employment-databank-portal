@@ -1,7 +1,6 @@
 import { httpClient } from "@/shared/lib";
 import type { User } from "@/features/auth/api/types";
 import type {
-  InitiateAccessPaymentPayload,
   InitiateAccessPaymentResponse,
   AccessPaymentStatusResponse,
   EmploymentAccessStatusResponse,
@@ -10,10 +9,8 @@ import type {
   ConfirmEmploymentAccessPayload,
 } from "./types";
 
-export const initiateAccessPayment = async (
-  payload: InitiateAccessPaymentPayload,
-): Promise<InitiateAccessPaymentResponse> => {
-  const { data } = await httpClient.post("/employment-access/initiate-payment", payload);
+export const initiateAccessPayment = async (): Promise<InitiateAccessPaymentResponse> => {
+  const { data } = await httpClient.post("/employment-access/initiate-payment");
   return data.data;
 };
 

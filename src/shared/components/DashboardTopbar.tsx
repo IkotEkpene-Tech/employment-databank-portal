@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/features/auth/context/AuthContext";
-import { Avatar, AvatarFallback } from "@/shared/ui";
+import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui";
 
 const Bar = styled.header`
   position: sticky;
@@ -74,6 +74,7 @@ export const DashboardTopbar = ({ title, onMenuClick }: DashboardTopbarProps) =>
       <Title>{title}</Title>
       <UserCluster>
         <Avatar>
+          {user?.photo && <AvatarImage src={user.photo} alt={displayName ?? "Profile photo"} />}
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <UserName>{displayName}</UserName>

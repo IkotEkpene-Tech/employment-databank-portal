@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import styled from "styled-components";
 import { DashboardShell } from "@/shared/components";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { toast } from "@/shared/ui";
-import { verifyEmploymentAccess, confirmEmploymentAccess } from "../api";
+import { verifyEmploymentAccess, confirmEmploymentAccess, getEmploymentAccessStatus } from "../api";
 import { AccessCodeGateForm } from "../components/AccessCodeGateForm";
 import { PayForAccessForm } from "../components/PayForAccessForm";
 import { NinConfirmModal } from "../components/NinConfirmModal";
@@ -35,12 +35,12 @@ const ToggleButton = styled.button<{ $active: boolean }>`
 `;
 
 interface LocationState {
-  nin?: string;
   accessCode?: string;
 }
 
 export const EmploymentAccessPage = () => {
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
   const prefill = (location.state as LocationState | null) ?? {};
@@ -50,9 +50,17 @@ export const EmploymentAccessPage = () => {
   const [credentials, setCredentials] = useState<AccessCodeGateValues | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  const statusQuery = useQuery({
+    queryKey: ["employment-access-status", user?.id],
+    queryFn: getEmploymentAccessStatus,
+    enabled: Boolean(user),
+  });
+  const refreshAttempts = () => queryClient.invalidateQueries({ queryKey: ["employment-access-status"] });
+
   const verifyMutation = useMutation({
     mutationFn: verifyEmploymentAccess,
     onSuccess: (data, variables) => {
+      refreshAttempts();
       setCredentials(variables);
       if (data.alreadyConfirmed) {
         toast.success("Access verified. Continuing your application...");
@@ -62,7 +70,11 @@ export const EmploymentAccessPage = () => {
       setConfirmData(data);
       setShowConfirmModal(true);
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Invalid NIN or access code"),
+    onError: (error) => {
+      // A rejected lookup may still have used an attempt — resync the counter.
+      refreshAttempts();
+      toast.error(error instanceof Error ? error.message : "Invalid NIN or access code");
+    },
   });
 
   const confirmMutation = useMutation({
@@ -86,7 +98,7 @@ export const EmploymentAccessPage = () => {
       <DashboardFormCard
         eyebrow="Employment Application"
         title="Verify to continue"
-        subtitle="Enter your NIN and access code every time you begin or resume your application."
+        subtitle="Enter your NIN and access code to begin or resume your application."
       >
       <Toggle>
         <ToggleButton type="button" $active={mode === "gate"} onClick={() => setMode("gate")}>
@@ -102,11 +114,11 @@ export const EmploymentAccessPage = () => {
           <AccessCodeGateForm
             onSubmit={(values) => verifyMutation.mutateAsync(values)}
             isSubmitting={verifyMutation.isPending}
-            defaultNin={prefill.nin}
+            trialsRemaining={statusQuery.data?.hasAccessCode ? statusQuery.data.trialsRemaining : undefined}
             defaultAccessCode={prefill.accessCode}
           />
           <div style={{ textAlign: "center", marginTop: "1.25rem", fontSize: "0.8125rem" }}>
-            Don&apos;t have a code, or has it expired?{" "}
+            Don&apos;t have a code, or has it expired or run out of attempts?{" "}
             <button
               type="button"
               onClick={() => setMode("pay")}

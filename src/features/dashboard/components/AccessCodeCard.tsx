@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
-import { Eye, EyeOff, Copy, Clock, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Copy, Clock, AlertTriangle, ScanSearch } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -97,6 +97,9 @@ export const AccessCodeCard = ({ user }: { user: User }) => {
   const cachedCode = authUser ? accessCodeCache.get(authUser.id) : null;
   const expiresAt = statusQuery.data?.accessCodeExpiresAt;
   const isExpired = statusQuery.data?.accessCodeExpired ?? false;
+  const trialsLeft = statusQuery.data?.trialsRemaining;
+  const maxTrials = statusQuery.data?.maxTrials;
+  const isExhausted = !isExpired && trialsLeft === 0 && user.applicationStatus === "access_issued";
 
   const handleCopy = async () => {
     if (!cachedCode) return;
@@ -113,7 +116,7 @@ export const AccessCodeCard = ({ user }: { user: User }) => {
       <CardHeader>
         <CardTitle>Your Access Code</CardTitle>
         <CardDescription>
-          Needed each time you resume your application
+          Needed to start or resume your application
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -150,6 +153,23 @@ export const AccessCodeCard = ({ user }: { user: User }) => {
             Only shown once, right after payment — check your email if you
             didn't save it.
           </InfoRow>
+        )}
+
+        {trialsLeft !== undefined && maxTrials !== undefined && !isExpired && (
+          <InfoRow $tone={trialsLeft === 0 && user.applicationStatus === "access_issued" ? "destructive" : "muted"}>
+            <ScanSearch size={14} /> NIN verification attempts left: {trialsLeft} of {maxTrials}
+          </InfoRow>
+        )}
+
+        {isExhausted && (
+          <>
+            <InfoRow $tone="destructive">
+              <AlertTriangle size={14} /> You&apos;ve used all your attempts on this code.
+            </InfoRow>
+            <Button asChild size="sm" variant="secondary">
+              <Link to="/apply">Pay for a New Access Code</Link>
+            </Button>
+          </>
         )}
 
         {expiresAt && !isExpired && (

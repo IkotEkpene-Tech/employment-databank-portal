@@ -1,7 +1,3 @@
-export interface InitiateAccessPaymentPayload {
-  nin: string;
-}
-
 export interface InitiateAccessPaymentResponse {
   authorizationUrl: string;
   reference: string;
@@ -12,8 +8,8 @@ export type AccessPaymentStatus = "pending" | "processing" | "code_issued" | "fa
 export interface AccessPaymentStatusResponse {
   status: AccessPaymentStatus;
   accessCode?: string; // only present the first time this is fetched after issuance
-  nin?: string;
   accessCodeExpiresAt?: string;
+  maxTrials?: number;
   reason?: string;
 }
 
@@ -26,6 +22,10 @@ export interface EmploymentAccessStatusResponse {
   hasAccessCode: boolean;
   accessCodeExpiresAt?: string;
   accessCodeExpired: boolean;
+  // NIN lookups left on the current code. Each lookup that gets an answer
+  // from the NIN provider uses one (even for a wrong NIN).
+  trialsRemaining: number;
+  maxTrials: number;
 }
 
 export interface VerifyEmploymentAccessPayload {
@@ -39,6 +39,9 @@ export interface VerifyEmploymentAccessResponse {
   otherName?: string;
   dob: string;
   gender: string;
+  photo?: string; // data: URL of the NIN photo
+  trialsRemaining: number;
+  maxTrials: number;
   // true if this NIN was already confirmed & saved to the profile in a
   // previous visit — frontend skips the confirm modal and goes straight
   // into the wizard.

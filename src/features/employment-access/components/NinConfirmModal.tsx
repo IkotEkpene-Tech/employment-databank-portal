@@ -28,11 +28,31 @@ const DD = styled.dd`
   margin: 0;
 `;
 
+const Photo = styled.img`
+  width: 5.5rem;
+  height: 5.5rem;
+  object-fit: cover;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const Hint = styled.p`
+  font-size: 0.8125rem;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.muted.foreground};
+  margin: 0;
+`;
+
 const Actions = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 `;
+
+const formatDob = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString([], { dateStyle: "long" });
+};
 
 interface NinConfirmModalProps {
   open: boolean;
@@ -50,6 +70,7 @@ export const NinConfirmModal = ({ open, data, onClose, onConfirm, onRetry, isCon
       <DialogDescription>Is this you? Once confirmed, these details cannot be changed.</DialogDescription>
       {data && (
         <Details>
+          {data.photo && <Photo src={data.photo} alt="Photo on your NIN record" />}
           <div>
             <DT>Full Name</DT>
             <DD>
@@ -58,7 +79,7 @@ export const NinConfirmModal = ({ open, data, onClose, onConfirm, onRetry, isCon
           </div>
           <div>
             <DT>Date of Birth</DT>
-            <DD>{data.dob}</DD>
+            <DD>{formatDob(data.dob)}</DD>
           </div>
           <div>
             <DT>Gender</DT>
@@ -70,9 +91,21 @@ export const NinConfirmModal = ({ open, data, onClose, onConfirm, onRetry, isCon
         <Button style={{ width: "100%" }} onClick={onConfirm} disabled={isConfirming}>
           <CheckCircle2 size={16} /> {isConfirming ? "Saving..." : "Yes, This Is Correct"}
         </Button>
-        <Button variant="outline" style={{ width: "100%" }} onClick={onRetry} disabled={isConfirming}>
+        <Button
+          variant="outline"
+          style={{ width: "100%" }}
+          onClick={onRetry}
+          disabled={isConfirming || data?.trialsRemaining === 0}
+        >
           <RefreshCw size={16} /> Enter a Different NIN
         </Button>
+        {data && (
+          <Hint>
+            {data.trialsRemaining === 0
+              ? "You have no verification attempts left, so this NIN can't be changed."
+              : `Using a different NIN costs one more attempt — ${data.trialsRemaining} of ${data.maxTrials} left.`}
+          </Hint>
+        )}
       </Actions>
     </DialogContent>
   </Dialog>
